@@ -1,8 +1,11 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:flutter/services.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
 
 import 'map_screen.dart';
 
@@ -16,16 +19,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   static const _currentLocationOption = '__current_location__';
   static const _mapLocationOption = '__map_location__';
-  static const _locations = [
-    'Tunis',
-    'Ariana',
-    'Ben Arous',
-    'Manouba',
-    'Nabeul',
-    'Sousse',
-    'Monastir',
-    'Sfax',
-  ];
   static const _listings = [
     _PropertyListing(
       category: 'Vente',
@@ -38,7 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
     _PropertyListing(
       category: 'Vente',
-      image: 'lib/screens/images/villa.jpeg',
+      image: 'lib/screens/images/villa1.jpg',
       price: '680 000 DT',
       title: 'Villa avec piscine',
       location: 'À Gammarth',
@@ -47,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
     _PropertyListing(
       category: 'Location',
-      image: 'lib/screens/images/villa.jpeg',
+      image: 'lib/screens/images/villa2.jpg',
       price: '3 200 DT / mois',
       title: 'Villa familiale avec jardin',
       location: 'À La Soukra',
@@ -56,73 +49,81 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
     _PropertyListing(
       category: 'Neuf',
-      image: 'lib/screens/images/immo.jpeg',
+      image: 'lib/screens/images/villa3.jpg',
       price: '425 000 DT',
       title: 'Résidence neuve S+3',
       location: 'Aux Jardins de Carthage',
       rating: '4.9',
       reviews: '(31 avis)',
     ),
+    _PropertyListing(
+      category: 'Terrain',
+      image: 'lib/screens/images/terrain_agricole.jpg',
+      price: '125 000 DT',
+      title: 'Parcelle agricole de 2 hectares',
+      location: 'À Béja',
+      rating: '4.8',
+      reviews: '(18 avis)',
+      photoCredit: 'Photo illustrative · Unsplash',
+    ),
+    _PropertyListing(
+      category: 'Terrain',
+      image: 'lib/screens/images/terrain_panoramique.jpg',
+      price: '280 000 DT',
+      title: 'Terrain avec vue panoramique',
+      location: 'À Aïn Draham',
+      rating: '4.9',
+      reviews: '(12 avis)',
+      photoCredit: 'Photo illustrative · Unsplash',
+    ),
   ];
 
   String? _selectedCategory;
-  String _selectedLocation = 'Tunis';
+  String _selectedLocation = 'Localisation';
   String? _currentCoordinates;
   bool _isLocating = false;
 
   Future<void> _selectLocation() async {
-    final location = await showModalBottomSheet<String>(
+    final location = await showDialog<String>(
       context: context,
-      isScrollControlled: true,
       builder: (context) => SafeArea(
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height * 0.65,
-          child: Column(
-            children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(20, 20, 20, 8),
-                child: Text(
-                  'Choisir une ville',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        child: Dialog(
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.5,
+            child: Column(
+              children: [
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(10, 10, 10, 8),
+                  child: Text(
+                    'Choisir une localisation',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                 ),
-              ),
-              Expanded(
-                child: ListView(
-                  children: [
-                    ListTile(
-                      leading: const Icon(
-                        Icons.my_location,
-                        color: Color(0xFF4B2A8B),
-                      ),
-                      title: const Text('Utiliser ma position actuelle'),
-                      onTap: () =>
-                          Navigator.pop(context, _currentLocationOption),
-                    ),
-                    ListTile(
-                      leading: const Icon(
-                        Icons.map_outlined,
-                        color: Color(0xFF4B2A8B),
-                      ),
-                      title: const Text('Choisir sur la carte'),
-                      onTap: () => Navigator.pop(context, _mapLocationOption),
-                    ),
-                    ..._locations.map(
-                      (location) => ListTile(
+                Expanded(
+                  child: ListView(
+                    children: [
+                      ListTile(
                         leading: const Icon(
-                          Icons.location_on_outlined,
+                          Icons.my_location,
                           color: Color(0xFF4B2A8B),
                         ),
-                        title: Text(location),
-                        trailing: location == _selectedLocation
-                            ? const Icon(Icons.check, color: Color(0xFF4B2A8B))
-                            : null,
-                        onTap: () => Navigator.pop(context, location),
+                        title: const Text('Utiliser ma position actuelle'),
+                        onTap: () =>
+                            Navigator.pop(context, _currentLocationOption),
                       ),
-                    ),
-                  ],
+                      ListTile(
+                        leading: const Icon(
+                          Icons.map_outlined,
+                          color: Color(0xFF4B2A8B),
+                        ),
+                        title: const Text('Choisir sur la carte'),
+                        onTap: () => Navigator.pop(context, _mapLocationOption),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -139,19 +140,80 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
       if (position != null && mounted) {
-        setState(() {
-          _selectedLocation = 'Position sur la carte';
-          _currentCoordinates =
-              '${position.latitude.toStringAsFixed(5)}, '
-              '${position.longitude.toStringAsFixed(5)}';
-        });
+        setState(() => _isLocating = true);
+        try {
+          await _setLocationFromCoordinates(
+            latitude: position.latitude,
+            longitude: position.longitude,
+            fallbackLabel: 'Position sur la carte',
+          );
+        } finally {
+          if (mounted) {
+            setState(() => _isLocating = false);
+          }
+        }
       }
-    } else if (location != null && mounted) {
-      setState(() {
-        _selectedLocation = location;
-        _currentCoordinates = null;
-      });
     }
+  }
+
+  Future<void> _setLocationFromCoordinates({
+    required double latitude,
+    required double longitude,
+    required String fallbackLabel,
+  }) async {
+    final locationName = await _resolveLocationName(latitude, longitude);
+    if (!mounted) return;
+
+    setState(() {
+      _selectedLocation = locationName ?? fallbackLabel;
+      _currentCoordinates =
+          '${latitude.toStringAsFixed(5)}, ${longitude.toStringAsFixed(5)}';
+    });
+  }
+
+  Future<String?> _resolveLocationName(
+    double latitude,
+    double longitude,
+  ) async {
+    if (kIsWeb ||
+        !{
+          TargetPlatform.android,
+          TargetPlatform.iOS,
+          TargetPlatform.macOS,
+        }.contains(defaultTargetPlatform)) {
+      _showLocationMessage(
+        'Le nom du lieu est disponible sur Android, iOS et macOS.',
+      );
+      return null;
+    }
+
+    try {
+      final placemarks = await Geocoding(locale: const Locale('fr', 'FR'))
+          .placemarkFromCoordinates(latitude, longitude);
+      if (placemarks.isNotEmpty) {
+        final placemark = placemarks.first;
+        for (final name in [
+          placemark.locality,
+          placemark.subAdministrativeArea,
+          placemark.administrativeArea,
+        ]) {
+          if (name != null && name.trim().isNotEmpty) {
+            return name.trim();
+          }
+        }
+      }
+    } on PlatformException {
+      _showLocationMessage(
+        'Impossible de déterminer le nom du lieu. Les coordonnées sont '
+        'conservées.',
+      );
+      return null;
+    }
+
+    _showLocationMessage(
+      'Nom du lieu introuvable. Les coordonnées sont conservées.',
+    );
+    return null;
   }
 
   LatLng get _initialMapPosition {
@@ -164,16 +226,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
-    return switch (_selectedLocation) {
-      'Ariana' => const LatLng(36.8625, 10.1956),
-      'Ben Arous' => const LatLng(36.7531, 10.2189),
-      'Manouba' => const LatLng(36.8081, 10.0972),
-      'Nabeul' => const LatLng(36.4513, 10.7357),
-      'Sousse' => const LatLng(35.8256, 10.63699),
-      'Monastir' => const LatLng(35.777, 10.8262),
-      'Sfax' => const LatLng(34.7406, 10.7603),
-      _ => const LatLng(36.8065, 10.1815),
-    };
+    return const LatLng(36.8065, 10.1815);
   }
 
   Future<void> _useCurrentLocation() async {
@@ -209,12 +262,11 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
       if (!mounted) return;
-      setState(() {
-        _selectedLocation = 'Ma position';
-        _currentCoordinates =
-            '${position.latitude.toStringAsFixed(5)}, '
-            '${position.longitude.toStringAsFixed(5)}';
-      });
+      await _setLocationFromCoordinates(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        fallbackLabel: 'Ma position',
+      );
     } on TimeoutException {
       _showLocationMessage(
         'La localisation a pris trop de temps. Vérifiez le signal GPS.',
@@ -283,53 +335,69 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Semantics(
-                    button: true,
-                    label: 'Choisir la ville, $_selectedLocation',
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(8),
-                      onTap: _selectLocation,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Row(
-                          children: [
-                            _isLocating
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Color(0xFF4B2A8B),
-                                    ),
-                                  )
-                                : const Icon(
-                                    Icons.location_on,
-                                    color: Color(0xFF4B2A8B),
-                                    size: 20,
-                                  ),
-                            const SizedBox(width: 5),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                  Flexible(
+                    child: Semantics(
+                      button: true,
+                      label: 'Choisir la localisation, $_selectedLocation',
+                      child: Material(
+                        color: const Color(0xFFF3EFFA),
+                        borderRadius: BorderRadius.circular(14),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: _selectLocation,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
+                            child: Row(
                               children: [
-                                Text(
-                                  _selectedLocation,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
+                                _isLocating
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Color(0xFF4B2A8B),
+                                        ),
+                                      )
+                                    : const Icon(
+                                        Icons.location_on,
+                                        color: Color(0xFF4B2A8B),
+                                        size: 24,
+                                      ),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        _selectedLocation,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20,
+                                        ),
+                                      ),
+                                      if (_currentCoordinates != null)
+                                        Text(
+                                          _currentCoordinates!,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ),
-                                if (_currentCoordinates != null)
-                                  Text(
-                                    _currentCoordinates!,
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 11,
-                                    ),
-                                  ),
+                                const Icon(Icons.keyboard_arrow_down, size: 24),
                               ],
                             ),
-                            const Icon(Icons.keyboard_arrow_down),
-                          ],
+                          ),
                         ),
                       ),
                     ),
@@ -392,45 +460,56 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Bannière Promotionnelle (Remplacer par Image.asset)
+              // Bannière Promotionnelle
               Container(
                 height: 150,
                 width: double.infinity,
                 decoration: BoxDecoration(
+                  color: const Color(0xFF4B2A8B),
                   borderRadius: BorderRadius.circular(16),
-                  image: const DecorationImage(
-                    image: AssetImage('lib/screens/images/villa_landscape.jpg'),
-                    fit: BoxFit.cover,
-                    colorFilter: ColorFilter.mode(
-                      Color(0x66000000),
-                      BlendMode.darken,
-                    ),
-                  ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Row(
                     children: [
-                      const Text(
-                        'Trouvez la maison\nde vos rêves',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Spacer(),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: const Color(0xFF4B2A8B),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 16, 8, 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Trouvez la maison\nde vos rêves',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const Spacer(),
+                              ElevatedButton(
+                                onPressed: () {},
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  foregroundColor: const Color(0xFF4B2A8B),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                ),
+                                child: const Text('Découvrir →'),
+                              ),
+                            ],
                           ),
                         ),
-                        child: const Text('Découvrir →'),
+                      ),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.asset(
+                          'lib/screens/images/villa5.jpg',
+                          width: 105,
+                          height: 118,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ],
                   ),
@@ -510,6 +589,25 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Image.asset(listing.image, fit: BoxFit.cover),
                 ),
               ),
+              if (listing.photoCredit != null)
+                Positioned(
+                  left: 8,
+                  bottom: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      listing.photoCredit!,
+                      style: const TextStyle(color: Colors.white, fontSize: 11),
+                    ),
+                  ),
+                ),
               const Positioned(
                 top: 10,
                 right: 10,
@@ -619,6 +717,7 @@ class _PropertyListing {
     required this.location,
     required this.rating,
     required this.reviews,
+    this.photoCredit,
   });
 
   final String category;
@@ -628,4 +727,5 @@ class _PropertyListing {
   final String location;
   final String rating;
   final String reviews;
+  final String? photoCredit;
 }

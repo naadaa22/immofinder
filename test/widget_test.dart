@@ -7,10 +7,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:geocoding_platform_interface/geocoding_platform_interface.dart'
+    as geocoding;
 import 'package:immofinder/main.dart';
 import 'package:immofinder/screens/home_screen.dart';
 
 void main() {
+  geocoding.GeocodingPlatformFactory.instance = _FakeGeocodingPlatformFactory();
+
   testWidgets('shows splash screen then opens login', (
     WidgetTester tester,
   ) async {
@@ -42,6 +46,9 @@ void main() {
         expect(find.text('Villa familiale avec jardin'), findsOneWidget);
       } else if (category == 'Neuf') {
         expect(find.text('Résidence neuve S+3'), findsOneWidget);
+      } else if (category == 'Terrain') {
+        expect(find.text('Parcelle agricole de 2 hectares'), findsOneWidget);
+        expect(find.text('Terrain avec vue panoramique'), findsOneWidget);
       } else {
         expect(
           find.text('Aucune annonce disponible pour cette catégorie.'),
@@ -63,30 +70,22 @@ void main() {
     expect(find.text('Villa avec piscine'), findsOneWidget);
     expect(find.text('Villa familiale avec jardin'), findsOneWidget);
     expect(find.text('Résidence neuve S+3'), findsOneWidget);
-    expect(find.byType(Image), findsNWidgets(4));
+    expect(find.byType(Image), findsNWidgets(7));
   });
 
-  testWidgets('location selector updates the selected city', (
+  testWidgets('location selector offers map and current position only', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
 
-    await tester.tap(find.text('Tunis'));
+    expect(find.text('Localisation'), findsOneWidget);
+    expect(find.text('Tunis'), findsNothing);
+    await tester.tap(find.text('Localisation'));
     await tester.pumpAndSettle();
-    expect(find.text('Choisir une ville'), findsOneWidget);
+    expect(find.text('Choisir une localisation'), findsOneWidget);
     expect(find.text('Utiliser ma position actuelle'), findsOneWidget);
     expect(find.text('Choisir sur la carte'), findsOneWidget);
-
-    await tester.scrollUntilVisible(
-      find.text('Sousse'),
-      200,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await tester.tap(find.text('Sousse'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Sousse'), findsOneWidget);
-    expect(find.text('Tunis'), findsNothing);
+    expect(find.text('Sousse'), findsNothing);
   });
 
   testWidgets('map picker returns a position to the home screen', (
@@ -94,7 +93,7 @@ void main() {
   ) async {
     await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
 
-    await tester.tap(find.text('Tunis'));
+    await tester.tap(find.text('Localisation'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Choisir sur la carte'));
     await tester.pumpAndSettle();
@@ -108,6 +107,28 @@ void main() {
     await tester.tap(find.text('Utiliser cette position'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Position sur la carte'), findsOneWidget);
+    expect(find.text('La Marsa'), findsOneWidget);
   });
+}
+
+class _FakeGeocodingPlatformFactory extends geocoding.GeocodingPlatformFactory {
+  @override
+  geocoding.Geocoding createGeocoding(
+    geocoding.GeocodingCreationParams params,
+  ) {
+    return _FakeGeocoding(params);
+  }
+}
+
+class _FakeGeocoding extends geocoding.Geocoding {
+  _FakeGeocoding(super.params) : super.implementation();
+
+  @override
+  Future<List<geocoding.Placemark>> placemarkFromCoordinates(
+    double latitude,
+    double longitude, {
+    Locale? locale,
+  }) async {
+    return const [geocoding.Placemark(locality: 'La Marsa')];
+  }
 }

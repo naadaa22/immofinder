@@ -37,6 +37,7 @@ dependencies:
   geolocator: ^14.1.2
   flutter_map: ^8.3.2
   latlong2: ^0.10.1
+  geocoding: ^5.0.1
 
 dev_dependencies:
   flutter_test:
@@ -48,6 +49,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  geocoding_platform_interface: ^5.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -61,9 +63,14 @@ flutter:
   uses-material-design: true
 
   assets:
-    - lib/screens/images/immo.jpeg
-    - lib/screens/images/villa.jpeg
+    - lib/screens/images/villa1.jpg
+    - lib/screens/images/villa2.jpg
+    - lib/screens/images/villa3.jpg
+    - lib/screens/images/villa4.jpg
+    - lib/screens/images/villa5.jpg
     - lib/screens/images/villa_landscape.jpg
+    - lib/screens/images/terrain_agricole.jpg
+    - lib/screens/images/terrain_panoramique.jpg
 
   # To add assets to your application, add an assets section, like this:
   # assets:

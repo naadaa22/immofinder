@@ -20,11 +20,6 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: const Color(0xFFF7F4FF),
       body: Container(
         decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('lib/screens/images/villa.jpeg'),
-            fit: BoxFit.cover,
-            colorFilter: ColorFilter.mode(Color(0x88F7F4FF), BlendMode.srcOver),
-          ),
         ),
         child: SafeArea(
           child: SingleChildScrollView(
