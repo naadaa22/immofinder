@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../user_profile_store.dart';
+import 'privacy_screen.dart';
 import 'register_screen.dart';
 import 'home_screen.dart'; // Nous la créerons à l'étape 5
 
@@ -185,6 +186,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 14),
+                TextButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const PrivacyScreen(),
+                    ),
+                  ),
+                  child: const Text('Politique de confidentialité'),
                 ),
               ],
             ),

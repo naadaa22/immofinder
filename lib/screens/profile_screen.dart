@@ -5,6 +5,7 @@ import '../user_profile_store.dart';
 import 'add_listing_screen.dart';
 import 'favorites_screen.dart';
 import 'login_screen.dart';
+import 'privacy_screen.dart';
 
 const _purple = Color(0xFF4B2A8B);
 
@@ -223,10 +224,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _ProfileActionTile(
             icon: Icons.privacy_tip_outlined,
             title: 'Confidentialité',
-            subtitle: 'Gérer la sécurité de votre compte',
-            onTap: () => _showInfo(
-              'Confidentialité',
-              'Les paramètres de confidentialité seront bientôt disponibles.',
+            subtitle: 'Consulter la politique de confidentialité',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const PrivacyScreen()),
             ),
           ),
           const SizedBox(height: 10),
@@ -244,22 +244,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               alignment: Alignment.centerLeft,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showInfo(String title, String message) {
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Fermer'),
           ),
         ],
       ),

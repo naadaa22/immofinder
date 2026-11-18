@@ -9,7 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:immofinder/main.dart';
 import 'package:immofinder/screens/home_screen.dart';
+import 'package:immofinder/screens/login_screen.dart';
 import 'package:immofinder/screens/profile_screen.dart';
+import 'package:immofinder/screens/privacy_screen.dart';
 import 'package:immofinder/user_profile_store.dart';
 
 void main() {
@@ -45,6 +47,29 @@ void main() {
 
     await tester.pumpWidget(const SizedBox.shrink());
     profileStore.clear();
+  });
+
+  testWidgets('opens the privacy policy from the login screen', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: LoginScreen()));
+
+    await tester.scrollUntilVisible(
+      find.text('Politique de confidentialité'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Politique de confidentialité'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PrivacyScreen), findsOneWidget);
+    expect(find.text('Votre vie privée compte'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Localisation et carte'),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(find.text('Localisation et carte'), findsOneWidget);
   });
 
   testWidgets('category icons filter the home announcements', (
