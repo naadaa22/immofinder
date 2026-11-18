@@ -54,3 +54,7 @@ build/
 .idea/
 .vscode/
 *.iml
+
+# Node / env (added by backend commit)
+node_modules/
+.env

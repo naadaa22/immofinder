@@ -7,7 +7,11 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'add_listing_screen.dart';
+import 'favorites_screen.dart';
 import 'map_screen.dart';
+import 'messages_screen.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,6 +21,14 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int _currentIndex = 0;
+  final List<Widget> _pages = [
+    const FavoritesScreen(),
+    const AddListingScreen(),
+    const MessagesScreen(),
+    const ProfileScreen(),
+  ];
+
   static const _currentLocationOption = '__current_location__';
   static const _mapLocationOption = '__map_location__';
   static const _listings = [
@@ -304,7 +316,8 @@ class _HomeScreenState extends State<HomeScreen> {
         type: BottomNavigationBarType.fixed,
         selectedItemColor: const Color(0xFF4B2A8B),
         unselectedItemColor: Colors.grey,
-        currentIndex: 0,
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Accueil'),
           BottomNavigationBarItem(
@@ -325,239 +338,256 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // En-tête (Localisation et Notifications)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(
-                    child: Semantics(
-                      button: true,
-                      label: 'Choisir la localisation, $_selectedLocation',
-                      child: Material(
-                        color: const Color(0xFFF3EFFA),
-                        borderRadius: BorderRadius.circular(14),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(14),
-                          onTap: _selectLocation,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 10,
-                            ),
-                            child: Row(
-                              children: [
-                                _isLocating
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Color(0xFF4B2A8B),
+      body: _currentIndex == 0
+          ? SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // En-tête (Localisation et Notifications)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(
+                          child: Semantics(
+                            button: true,
+                            label:
+                                'Choisir la localisation, $_selectedLocation',
+                            child: Material(
+                              color: const Color(0xFFF3EFFA),
+                              borderRadius: BorderRadius.circular(14),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(14),
+                                onTap: _selectLocation,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 10,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      _isLocating
+                                          ? const SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: Color(0xFF4B2A8B),
+                                              ),
+                                            )
+                                          : const Icon(
+                                              Icons.location_on,
+                                              color: Color(0xFF4B2A8B),
+                                              size: 24,
+                                            ),
+                                      const SizedBox(width: 8),
+                                      Flexible(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              _selectedLocation,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 20,
+                                              ),
+                                            ),
+                                            if (_currentCoordinates != null)
+                                              Text(
+                                                _currentCoordinates!,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  color: Colors.grey[600],
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                          ],
                                         ),
-                                      )
-                                    : const Icon(
-                                        Icons.location_on,
-                                        color: Color(0xFF4B2A8B),
+                                      ),
+                                      const Icon(
+                                        Icons.keyboard_arrow_down,
                                         size: 24,
                                       ),
-                                const SizedBox(width: 8),
-                                Flexible(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        _selectedLocation,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 20,
-                                        ),
-                                      ),
-                                      if (_currentCoordinates != null)
-                                        Text(
-                                          _currentCoordinates!,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            color: Colors.grey[600],
-                                            fontSize: 13,
-                                          ),
-                                        ),
                                     ],
                                   ),
                                 ),
-                                const Icon(Icons.keyboard_arrow_down, size: 24),
-                              ],
+                              ),
                             ),
                           ),
                         ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.notifications_none,
+                            color: Color(0xFF4B2A8B),
+                          ),
+                          onPressed: () {},
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Barre de recherche
+                    TextField(
+                      decoration: InputDecoration(
+                        hintText: 'Rechercher un bien...',
+                        prefixIcon: const Icon(Icons.search),
+                        filled: true,
+                        fillColor: Colors.grey[100],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
                       ),
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.notifications_none,
-                      color: Color(0xFF4B2A8B),
+                    const SizedBox(height: 20),
+
+                    // Catégories
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildCategory(
+                          Icons.home,
+                          'Vente',
+                          const Color(0xFFE8E2FF),
+                          const Color(0xFF4B2A8B),
+                        ),
+                        _buildCategory(
+                          Icons.key,
+                          'Location',
+                          const Color(0xFFFFF3E0),
+                          Colors.orange,
+                        ),
+                        _buildCategory(
+                          Icons.apartment,
+                          'Neuf',
+                          const Color(0xFFE3F2FD),
+                          Colors.blue,
+                        ),
+                        _buildCategory(
+                          Icons.park,
+                          'Terrain',
+                          const Color(0xFFE8F5E9),
+                          Colors.green,
+                        ),
+                      ],
                     ),
-                    onPressed: () {},
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
+                    const SizedBox(height: 24),
 
-              // Barre de recherche
-              TextField(
-                decoration: InputDecoration(
-                  hintText: 'Rechercher un bien...',
-                  prefixIcon: const Icon(Icons.search),
-                  filled: true,
-                  fillColor: Colors.grey[100],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
+                    // Bannière Promotionnelle
+                    Container(
+                      height: 150,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4B2A8B),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  16,
+                                  8,
+                                  16,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Trouvez la maison\nde vos rêves',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    ElevatedButton(
+                                      onPressed: () {},
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        foregroundColor: const Color(
+                                          0xFF4B2A8B,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                        ),
+                                      ),
+                                      child: const Text('Découvrir →'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.asset(
+                                'lib/screens/images/villa5.jpg',
+                                width: 105,
+                                height: 118,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
 
-              // Catégories
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildCategory(
-                    Icons.home,
-                    'Vente',
-                    const Color(0xFFE8E2FF),
-                    const Color(0xFF4B2A8B),
-                  ),
-                  _buildCategory(
-                    Icons.key,
-                    'Location',
-                    const Color(0xFFFFF3E0),
-                    Colors.orange,
-                  ),
-                  _buildCategory(
-                    Icons.apartment,
-                    'Neuf',
-                    const Color(0xFFE3F2FD),
-                    Colors.blue,
-                  ),
-                  _buildCategory(
-                    Icons.park,
-                    'Terrain',
-                    const Color(0xFFE8F5E9),
-                    Colors.green,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
+                    // Titre Section
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _selectedCategory == null
+                              ? 'Annonces populaires'
+                              : 'Annonces $_selectedCategory',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: _selectedCategory == null
+                              ? () {}
+                              : () => setState(() => _selectedCategory = null),
+                          child: Text(
+                            _selectedCategory == null
+                                ? 'Voir tout >'
+                                : 'Tout voir',
+                            style: const TextStyle(color: Color(0xFF4B2A8B)),
+                          ),
+                        ),
+                      ],
+                    ),
 
-              // Bannière Promotionnelle
-              Container(
-                height: 150,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4B2A8B),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Row(
-                    children: [
-                      Expanded(
+                    ...visibleListings.map(_buildListingCard),
+                    if (visibleListings.isEmpty)
+                      Center(
                         child: Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 16, 8, 16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Trouvez la maison\nde vos rêves',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const Spacer(),
-                              ElevatedButton(
-                                onPressed: () {},
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  foregroundColor: const Color(0xFF4B2A8B),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                ),
-                                child: const Text('Découvrir →'),
-                              ),
-                            ],
+                          padding: const EdgeInsets.symmetric(vertical: 32),
+                          child: Text(
+                            'Aucune annonce disponible pour cette catégorie.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.grey[600]),
                           ),
                         ),
                       ),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.asset(
-                          'lib/screens/images/villa5.jpg',
-                          width: 105,
-                          height: 118,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ],
-                  ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 24),
-
-              // Titre Section
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    _selectedCategory == null
-                        ? 'Annonces populaires'
-                        : 'Annonces $_selectedCategory',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: _selectedCategory == null
-                        ? () {}
-                        : () => setState(() => _selectedCategory = null),
-                    child: Text(
-                      _selectedCategory == null ? 'Voir tout >' : 'Tout voir',
-                      style: const TextStyle(color: Color(0xFF4B2A8B)),
-                    ),
-                  ),
-                ],
-              ),
-
-              ...visibleListings.map(_buildListingCard),
-              if (visibleListings.isEmpty)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 32),
-                    child: Text(
-                      'Aucune annonce disponible pour cette catégorie.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey[600]),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
+            )
+          : _pages[_currentIndex - 1],
     );
   }
 

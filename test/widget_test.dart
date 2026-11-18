@@ -11,6 +11,10 @@ import 'package:geocoding_platform_interface/geocoding_platform_interface.dart'
     as geocoding;
 import 'package:immofinder/main.dart';
 import 'package:immofinder/screens/home_screen.dart';
+import 'package:immofinder/screens/login_screen.dart';
+import 'package:immofinder/screens/profile_screen.dart';
+import 'package:immofinder/screens/privacy_screen.dart';
+import 'package:immofinder/user_profile_store.dart';
 
 void main() {
   geocoding.GeocodingPlatformFactory.instance = _FakeGeocodingPlatformFactory();
@@ -27,6 +31,49 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Connectez-vous pour continuer'), findsOneWidget);
+  });
+
+  testWidgets('shows the signed-in user details in the profile', (
+    WidgetTester tester,
+  ) async {
+    final profileStore = UserProfileStore.instance;
+    profileStore.register(
+      name: 'Leila Trabelsi',
+      email: 'leila@example.com',
+      phone: '+216 55 123 456',
+    );
+
+    await tester.pumpWidget(const MaterialApp(home: ProfileScreen()));
+
+    expect(find.text('Leila Trabelsi'), findsOneWidget);
+    expect(find.text('leila@example.com'), findsOneWidget);
+    expect(find.text('+216 55 123 456'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    profileStore.clear();
+  });
+
+  testWidgets('opens the privacy policy from the login screen', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: LoginScreen()));
+
+    await tester.scrollUntilVisible(
+      find.text('Politique de confidentialité'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Politique de confidentialité'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PrivacyScreen), findsOneWidget);
+    expect(find.text('Votre vie privée compte'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Localisation et carte'),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(find.text('Localisation et carte'), findsOneWidget);
   });
 
   testWidgets('category icons filter the home announcements', (
