@@ -24,3 +24,11 @@ class ImmoFinderApp extends StatelessWidget {
     );
   }
 }
+
+class AppColors {
+  static const Color primary = Color(0xFF4B2A8B); 
+  static const Color background = Color(0xFFF8F9FA); 
+  static const Color textDark = Color(0xFF2D2D2D);
+  static const Color textLight = Color(0xFF8E8E93);
+  static const Color white = Colors.white;
+}
