@@ -34,6 +34,9 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  geolocator: ^14.1.2
+  flutter_map: ^8.3.2
+  latlong2: ^0.10.1
 
 dev_dependencies:
   flutter_test:
@@ -59,6 +62,8 @@ flutter:
 
   assets:
     - lib/screens/images/immo.jpeg
+    - lib/screens/images/villa.jpeg
+    - lib/screens/images/villa_landscape.jpg
 
   # To add assets to your application, add an assets section, like this:
   # assets:
