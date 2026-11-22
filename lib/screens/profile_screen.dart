@@ -4,6 +4,7 @@ import '../user_profile_store.dart';
 import 'add_listing_screen.dart';
 import 'favorites_screen.dart';
 import 'login_screen.dart';
+import 'notifications_screen.dart';
 import 'privacy_screen.dart';
 
 const _purple = Color(0xFF4B2A8B);
@@ -164,6 +165,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onChanged: (enabled) {
                   setState(() => _notificationsEnabled = enabled);
                 },
+              ),
+            ),
+            _ProfileActionTile(
+              icon: Icons.notifications_outlined,
+              title: 'Historique des notifications',
+              subtitle: 'Messages, annonces et mises à jour',
+              iconColor: const Color(0xFFEFAC21),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const NotificationsScreen(),
+                ),
               ),
             ),
             _ProfileActionTile(

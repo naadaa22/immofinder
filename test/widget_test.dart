@@ -14,6 +14,7 @@ import 'package:immofinder/screens/home_screen.dart';
 import 'package:immofinder/screens/login_screen.dart';
 import 'package:immofinder/screens/profile_screen.dart';
 import 'package:immofinder/screens/privacy_screen.dart';
+import 'package:immofinder/screens/register_screen.dart';
 import 'package:immofinder/user_profile_store.dart';
 
 void main() {
@@ -45,6 +46,10 @@ void main() {
 
     await tester.pumpWidget(const MaterialApp(home: ProfileScreen()));
 
+    expect(find.text('Informations personnelles'), findsOneWidget);
+    await tester.tap(find.text('Informations personnelles'));
+    await tester.pumpAndSettle();
+
     expect(find.text('Leila Trabelsi'), findsOneWidget);
     expect(find.text('leila@example.com'), findsOneWidget);
     expect(find.text('+216 55 123 456'), findsOneWidget);
@@ -74,6 +79,28 @@ void main() {
       scrollable: find.byType(Scrollable).last,
     );
     expect(find.text('Localisation et carte'), findsOneWidget);
+  });
+
+  testWidgets('password visibility buttons toggle login and registration', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: LoginScreen()));
+
+    final loginPassword = find.byType(TextField).at(1);
+    expect(tester.widget<TextField>(loginPassword).obscureText, isTrue);
+    await tester.tap(find.byTooltip('Afficher le mot de passe'));
+    await tester.pump();
+    expect(tester.widget<TextField>(loginPassword).obscureText, isFalse);
+
+    await tester.pumpWidget(const MaterialApp(home: RegisterScreen()));
+    final registrationPassword = find.byWidgetPredicate(
+      (widget) =>
+          widget is TextField && widget.decoration?.hintText == 'Mot de passe',
+    );
+    expect(tester.widget<TextField>(registrationPassword).obscureText, isTrue);
+    await tester.tap(find.byTooltip('Afficher le mot de passe').first);
+    await tester.pump();
+    expect(tester.widget<TextField>(registrationPassword).obscureText, isFalse);
   });
 
   testWidgets('category icons filter the home announcements', (

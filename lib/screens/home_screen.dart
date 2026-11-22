@@ -11,6 +11,8 @@ import 'add_listing_screen.dart';
 import 'favorites_screen.dart';
 import 'map_screen.dart';
 import 'messages_screen.dart';
+import '../notification_store.dart';
+import 'notifications_screen.dart';
 import 'profile_screen.dart';
 
 class _ProfileBottomNavigation extends StatelessWidget {
@@ -164,6 +166,8 @@ class _HomeScreenState extends State<HomeScreen> {
       location: 'À La Marsa',
       rating: '4.8',
       reviews: '(120 avis)',
+      ownerName: 'Ahmed Ben Ali',
+      ownerId: 'ahmed@immofinder.tn',
     ),
     _PropertyListing(
       category: 'Vente',
@@ -173,6 +177,8 @@ class _HomeScreenState extends State<HomeScreen> {
       location: 'À Gammarth',
       rating: '4.9',
       reviews: '(86 avis)',
+      ownerName: 'Meriem Trabelsi',
+      ownerId: 'meriem@immofinder.tn',
     ),
     _PropertyListing(
       category: 'Location',
@@ -182,6 +188,8 @@ class _HomeScreenState extends State<HomeScreen> {
       location: 'À La Soukra',
       rating: '4.7',
       reviews: '(42 avis)',
+      ownerName: 'Youssef Gharbi',
+      ownerId: 'youssef@immofinder.tn',
     ),
     _PropertyListing(
       category: 'Neuf',
@@ -191,6 +199,8 @@ class _HomeScreenState extends State<HomeScreen> {
       location: 'Aux Jardins de Carthage',
       rating: '4.9',
       reviews: '(31 avis)',
+      ownerName: 'Ines Mejri',
+      ownerId: 'ines@immofinder.tn',
     ),
     _PropertyListing(
       category: 'Terrain',
@@ -200,6 +210,8 @@ class _HomeScreenState extends State<HomeScreen> {
       location: 'À Béja',
       rating: '4.8',
       reviews: '(18 avis)',
+      ownerName: 'Slim Bouazizi',
+      ownerId: 'slim@immofinder.tn',
       photoCredit: 'Photo illustrative · Unsplash',
     ),
     _PropertyListing(
@@ -210,6 +222,8 @@ class _HomeScreenState extends State<HomeScreen> {
       location: 'À Aïn Draham',
       rating: '4.9',
       reviews: '(12 avis)',
+      ownerName: 'Nadia Kacem',
+      ownerId: 'nadia@immofinder.tn',
       photoCredit: 'Photo illustrative · Unsplash',
     ),
   ];
@@ -522,12 +536,30 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.notifications_none,
-                            color: Color(0xFF4B2A8B),
-                          ),
-                          onPressed: () {},
+                        AnimatedBuilder(
+                          animation: NotificationStore.instance,
+                          builder: (context, _) {
+                            return Material(
+                              color: const Color(0xFFF1ECFA),
+                              shape: const CircleBorder(),
+                              child: IconButton(
+                                tooltip: 'Notifications',
+                                icon: const Icon(
+                                  Icons.notifications_none_rounded,
+                                  color: Color(0xFF4B2A8B),
+                                  size: 24,
+                                ),
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute<void>(
+                                      builder: (_) =>
+                                          const NotificationsScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -694,104 +726,119 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildListingCard(_PropertyListing listing) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            blurRadius: 10,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(16),
-                ),
-                child: AspectRatio(
-                  aspectRatio: 12 / 5,
-                  child: Image.asset(listing.image, fit: BoxFit.cover),
-                ),
-              ),
-              if (listing.photoCredit != null)
-                Positioned(
-                  left: 8,
-                  bottom: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      listing.photoCredit!,
-                      style: const TextStyle(color: Colors.white, fontSize: 11),
-                    ),
-                  ),
-                ),
-              const Positioned(
-                top: 10,
-                right: 10,
-                child: CircleAvatar(
-                  backgroundColor: Colors.white,
-                  child: Icon(Icons.favorite, color: Colors.red),
-                ),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () {
+        MessagesScreen.openConversation(
+          context,
+          otherUserId: listing.ownerId,
+          otherUserName: listing.ownerName,
+          property:
+              '${listing.title} · ${listing.location.replaceFirst('À ', '')}',
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withValues(alpha: 0.1),
+              blurRadius: 10,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
               children: [
-                Text(
-                  listing.price,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF4B2A8B),
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 12 / 5,
+                    child: Image.asset(listing.image, fit: BoxFit.cover),
                   ),
                 ),
-                const SizedBox(height: 5),
-                Text(
-                  listing.title,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  listing.location,
-                  style: const TextStyle(color: Colors.grey),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    const Icon(Icons.star, color: Colors.amber, size: 16),
-                    const SizedBox(width: 4),
-                    Text(
-                      listing.rating,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                if (listing.photoCredit != null)
+                  Positioned(
+                    left: 8,
+                    bottom: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        listing.photoCredit!,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                        ),
+                      ),
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      listing.reviews,
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                    ),
-                  ],
+                  ),
+                const Positioned(
+                  top: 10,
+                  right: 10,
+                  child: CircleAvatar(
+                    backgroundColor: Colors.white,
+                    child: Icon(Icons.favorite, color: Colors.red),
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    listing.price,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF4B2A8B),
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    listing.title,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  Text(
+                    listing.location,
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      const Icon(Icons.star, color: Colors.amber, size: 16),
+                      const SizedBox(width: 4),
+                      Text(
+                        listing.rating,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        listing.reviews,
+                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -849,6 +896,8 @@ class _PropertyListing {
     required this.location,
     required this.rating,
     required this.reviews,
+    required this.ownerName,
+    required this.ownerId,
     this.photoCredit,
   });
 
@@ -859,5 +908,7 @@ class _PropertyListing {
   final String location;
   final String rating;
   final String reviews;
+  final String ownerName;
+  final String ownerId;
   final String? photoCredit;
 }

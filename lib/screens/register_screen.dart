@@ -14,6 +14,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+  bool _isPasswordVisible = false;
 
   @override
   void dispose() {
@@ -73,12 +74,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 'Mot de passe',
                 Icons.lock_outline,
                 isPassword: true,
+                passwordVisible: _isPasswordVisible,
+                onTogglePasswordVisibility: _togglePasswordVisibility,
               ),
               const SizedBox(height: 16),
               _buildTextField(
                 'Confirmer le mot de passe',
                 Icons.lock_outline,
                 isPassword: true,
+                passwordVisible: _isPasswordVisible,
+                onTogglePasswordVisibility: _togglePasswordVisibility,
               ),
 
               const SizedBox(height: 30),
@@ -138,19 +143,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  void _togglePasswordVisibility() {
+    setState(() => _isPasswordVisible = !_isPasswordVisible);
+  }
+
   // Fonction utilitaire pour créer les champs de texte rapidement
   Widget _buildTextField(
     String hint,
     IconData icon, {
     bool isPassword = false,
+    bool passwordVisible = false,
+    VoidCallback? onTogglePasswordVisibility,
     TextEditingController? controller,
   }) {
     return TextField(
       controller: controller,
-      obscureText: isPassword,
+      obscureText: isPassword && !passwordVisible,
       decoration: InputDecoration(
         hintText: hint,
         prefixIcon: Icon(icon),
+        suffixIcon: isPassword
+            ? IconButton(
+                tooltip: passwordVisible
+                    ? 'Masquer le mot de passe'
+                    : 'Afficher le mot de passe',
+                onPressed: onTogglePasswordVisibility,
+                icon: Icon(
+                  passwordVisible ? Icons.visibility : Icons.visibility_off,
+                ),
+              )
+            : null,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
