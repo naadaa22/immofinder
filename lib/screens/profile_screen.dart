@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../favorites_store.dart';
 import '../user_profile_store.dart';
 import 'add_listing_screen.dart';
 import 'favorites_screen.dart';
@@ -100,274 +99,112 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F7FC),
-      appBar: AppBar(
-        title: const Text(
-          'Mon profil',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: const Color(0xFFF8F7FC),
-        actions: [
-          IconButton(
-            tooltip: 'Modifier mon profil',
-            onPressed: _editProfile,
-            icon: const Icon(Icons.edit_outlined, color: _purple),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
-        children: [
-          AnimatedBuilder(
-            animation: UserProfileStore.instance,
-            builder: (context, _) {
-              final profile =
-                  UserProfileStore.instance.current ??
-                  const UserProfile(name: 'Utilisateur', email: '', phone: '');
-              return _ProfileHeader(
-                name: profile.name,
-                email: profile.email,
-                phone: profile.phone,
-                onEdit: _editProfile,
-              );
-            },
-          ),
-          const SizedBox(height: 18),
-          Row(
-            children: [
-              const Expanded(
-                child: _ProfileStat(
-                  icon: Icons.home_work_outlined,
-                  value: '0',
-                  label: 'Annonces',
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(0, 12, 0, 24),
+          children: [
+            const _GroupLabel(title: 'Mon espace'),
+            const SizedBox(height: 14),
+            _ProfileActionTile(
+              icon: Icons.home_outlined,
+              title: 'Mes annonces',
+              subtitle: 'Gérer et publier vos biens',
+              iconColor: const Color(0xFF5E37A7),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const _MyListingsScreen(),
                 ),
               ),
-              SizedBox(width: 10),
-              Expanded(
-                child: AnimatedBuilder(
-                  animation: FavoritesStore.instance,
-                  builder: (context, _) => _ProfileStat(
-                    icon: Icons.favorite_border,
-                    value: '${FavoritesStore.instance.favorites.length}',
-                    label: 'Favoris',
-                  ),
+            ),
+            _ProfileActionTile(
+              icon: Icons.favorite_border,
+              title: 'Mes favoris',
+              subtitle: 'Les biens que vous avez enregistrés',
+              iconColor: const Color(0xFFE83E57),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const FavoritesScreen(),
                 ),
               ),
-              const SizedBox(width: 10),
-              const Expanded(
-                child: _ProfileStat(
-                  icon: Icons.star_outline,
-                  value: '4.8',
-                  label: 'Note',
+            ),
+            _ProfileActionTile(
+              icon: Icons.person_outline,
+              title: 'Informations personnelles',
+              subtitle: 'Nom, email et téléphone',
+              iconColor: const Color(0xFF6D78C7),
+              onTap: _editProfile,
+            ),
+            const SizedBox(height: 22),
+            const _GroupLabel(title: 'Préférences'),
+            const SizedBox(height: 14),
+            Card(
+              margin: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+              color: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: const BorderSide(color: Color(0xFFF0EEF4)),
+              ),
+              child: SwitchListTile(
+                contentPadding: const EdgeInsets.fromLTRB(16, 8, 14, 8),
+                secondary: const _ActionIcon(
+                  icon: Icons.notifications_none,
+                  iconColor: Color(0xFFEFAC21),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          const _GroupLabel(title: 'Mon espace'),
-          const SizedBox(height: 8),
-          _ProfileActionTile(
-            icon: Icons.campaign_outlined,
-            title: 'Mes annonces',
-            subtitle: 'Gérer et publier vos biens',
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => const _MyListingsScreen(),
-              ),
-            ),
-          ),
-          _ProfileActionTile(
-            icon: Icons.favorite_border,
-            title: 'Mes favoris',
-            subtitle: 'Les biens que vous avez enregistrés',
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const FavoritesScreen()),
-            ),
-          ),
-          _ProfileActionTile(
-            icon: Icons.person_outline,
-            title: 'Informations personnelles',
-            subtitle: 'Nom, email et téléphone',
-            onTap: _editProfile,
-          ),
-          const SizedBox(height: 20),
-          const _GroupLabel(title: 'Préférences'),
-          const SizedBox(height: 8),
-          Card(
-            margin: const EdgeInsets.only(bottom: 10),
-            color: Colors.white,
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: const BorderSide(color: Color(0xFFECE8F3)),
-            ),
-            child: SwitchListTile(
-              secondary: const _ActionIcon(icon: Icons.notifications_none),
-              title: const Text(
-                'Notifications',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              subtitle: const Text('Nouveaux messages et annonces'),
-              value: _notificationsEnabled,
-              activeThumbColor: _purple,
-              onChanged: (enabled) {
-                setState(() => _notificationsEnabled = enabled);
-              },
-            ),
-          ),
-          _ProfileActionTile(
-            icon: Icons.help_outline,
-            title: 'Centre d’aide',
-            subtitle: 'Questions fréquentes et assistance',
-            onTap: _showHelp,
-          ),
-          _ProfileActionTile(
-            icon: Icons.privacy_tip_outlined,
-            title: 'Confidentialité',
-            subtitle: 'Consulter la politique de confidentialité',
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const PrivacyScreen()),
-            ),
-          ),
-          const SizedBox(height: 10),
-          TextButton.icon(
-            onPressed: _logout,
-            icon: const Icon(Icons.logout, color: Color(0xFFB3261E)),
-            label: const Text(
-              'Se déconnecter',
-              style: TextStyle(
-                color: Color(0xFFB3261E),
-                fontWeight: FontWeight.w600,
+                title: const Text(
+                  'Notifications',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 17),
+                ),
+                subtitle: const Text(
+                  'Nouveaux messages et annonces',
+                  style: TextStyle(color: Color(0xFF77757D), fontSize: 14),
+                ),
+                value: _notificationsEnabled,
+                activeThumbColor: _purple,
+                onChanged: (enabled) {
+                  setState(() => _notificationsEnabled = enabled);
+                },
               ),
             ),
-            style: TextButton.styleFrom(
-              alignment: Alignment.centerLeft,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            _ProfileActionTile(
+              icon: Icons.help_outline,
+              title: 'Centre d’aide',
+              subtitle: 'Questions fréquentes et assistance',
+              iconColor: const Color(0xFF35AFA7),
+              onTap: _showHelp,
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader({
-    required this.name,
-    required this.email,
-    required this.phone,
-    required this.onEdit,
-  });
-
-  final String name;
-  final String email;
-  final String phone;
-  final VoidCallback onEdit;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [_purple, Color(0xFF7952C8)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(22),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 34,
-            backgroundColor: Colors.white.withValues(alpha: 0.2),
-            child: Text(
-              _initials(name),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
+            _ProfileActionTile(
+              icon: Icons.privacy_tip_outlined,
+              title: 'Confidentialité',
+              subtitle: 'Consulter la politique de confidentialité',
+              iconColor: const Color(0xFF555F9C),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => const PrivacyScreen()),
               ),
             ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
+            const SizedBox(height: 18),
+            Center(
+              child: TextButton.icon(
+                onPressed: _logout,
+                icon: const Icon(Icons.logout, color: Color(0xFFE53935)),
+                label: const Text(
+                  'Se déconnecter',
+                  style: TextStyle(
+                    color: Color(0xFFE53935),
+                    fontWeight: FontWeight.w700,
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 5),
-                Text(
-                  email.isEmpty ? 'Adresse email non renseignée' : email,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                 ),
-                const SizedBox(height: 3),
-                Text(
-                  phone.isEmpty ? 'Téléphone non renseigné' : phone,
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
-                ),
-              ],
+              ),
             ),
-          ),
-          IconButton(
-            onPressed: onEdit,
-            tooltip: 'Modifier',
-            icon: const Icon(Icons.edit_outlined, color: Colors.white),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _initials(String value) {
-    final parts = value.trim().split(RegExp(r'\s+'));
-    if (parts.length < 2) return parts.first.characters.first.toUpperCase();
-    return '${parts.first.characters.first}${parts.last.characters.first}'
-        .toUpperCase();
-  }
-}
-
-class _ProfileStat extends StatelessWidget {
-  const _ProfileStat({
-    required this.icon,
-    required this.value,
-    required this.label,
-  });
-
-  final IconData icon;
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFECE8F3)),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: _purple, size: 20),
-          const SizedBox(height: 5),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 11)),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -380,9 +217,13 @@ class _GroupLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+    return Padding(
+      padding: const EdgeInsets.only(left: 14),
+      child: Text(
+        title,
+        textAlign: TextAlign.left,
+        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+      ),
     );
   }
 }
@@ -393,29 +234,45 @@ class _ProfileActionTile extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.iconColor = _purple,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
+  final Color iconColor;
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.fromLTRB(14, 0, 14, 12),
       color: Colors.white,
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Color(0xFFECE8F3)),
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: Color(0xFFF0EEF4)),
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-        leading: _ActionIcon(icon: icon),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Text(subtitle),
-        trailing: const Icon(Icons.chevron_right, color: Colors.black38),
+        contentPadding: const EdgeInsets.fromLTRB(16, 8, 14, 8),
+        leading: _ActionIcon(icon: icon, iconColor: iconColor),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 17),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: const TextStyle(
+            color: Color(0xFF77757D),
+            fontSize: 14,
+            height: 1.25,
+          ),
+        ),
+        trailing: const Icon(
+          Icons.chevron_right,
+          color: Color(0xFF9D91AF),
+          size: 24,
+        ),
         onTap: onTap,
       ),
     );
@@ -423,15 +280,17 @@ class _ProfileActionTile extends StatelessWidget {
 }
 
 class _ActionIcon extends StatelessWidget {
-  const _ActionIcon({required this.icon});
+  const _ActionIcon({required this.icon, this.iconColor = _purple});
 
   final IconData icon;
+  final Color iconColor;
 
   @override
   Widget build(BuildContext context) {
-    return CircleAvatar(
-      backgroundColor: const Color(0xFFEDE7F7),
-      child: Icon(icon, color: _purple, size: 21),
+    return SizedBox(
+      width: 48,
+      height: 48,
+      child: Center(child: Icon(icon, color: iconColor, size: 26)),
     );
   }
 }

@@ -13,6 +13,130 @@ import 'map_screen.dart';
 import 'messages_screen.dart';
 import 'profile_screen.dart';
 
+class _ProfileBottomNavigation extends StatelessWidget {
+  const _ProfileBottomNavigation({
+    required this.currentIndex,
+    required this.onTap,
+  });
+
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    const purple = Color(0xFF4B2A8B);
+    final items = [
+      (Icons.home_outlined, 'Accueil'),
+      (Icons.favorite_border, 'Favoris'),
+      (Icons.message_outlined, 'Messages'),
+      (Icons.person_outline, 'Profil'),
+    ];
+
+    return Container(
+      height: 82,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            _BottomNavItem(
+              icon: items[0].$1,
+              label: items[0].$2,
+              selected: currentIndex == 0,
+              onTap: () => onTap(0),
+            ),
+            _BottomNavItem(
+              icon: items[1].$1,
+              label: items[1].$2,
+              selected: currentIndex == 1,
+              onTap: () => onTap(1),
+            ),
+            Expanded(
+              child: Center(
+                child: InkResponse(
+                  onTap: () => onTap(2),
+                  radius: 38,
+                  child: Container(
+                    width: 64,
+                    height: 64,
+                    decoration: const BoxDecoration(
+                      color: purple,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.add, color: Colors.white, size: 34),
+                  ),
+                ),
+              ),
+            ),
+            _BottomNavItem(
+              icon: items[2].$1,
+              label: items[2].$2,
+              selected: currentIndex == 3,
+              onTap: () => onTap(3),
+            ),
+            _BottomNavItem(
+              icon: items[3].$1,
+              label: items[3].$2,
+              selected: currentIndex == 4,
+              onTap: () => onTap(4),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BottomNavItem extends StatelessWidget {
+  const _BottomNavItem({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    const purple = Color(0xFF4B2A8B);
+    final color = selected ? purple : const Color(0xFF77777D);
+    return Expanded(
+      child: InkResponse(
+        onTap: onTap,
+        radius: 34,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 29),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 12,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -312,31 +436,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       // Barre de navigation inférieure
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFF4B2A8B),
-        unselectedItemColor: Colors.grey,
+      bottomNavigationBar: _ProfileBottomNavigation(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Accueil'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite_border),
-            label: 'Favoris',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add_circle, size: 40, color: Color(0xFF4B2A8B)),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.message_outlined),
-            label: 'Messages',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            label: 'Profil',
-          ),
-        ],
       ),
       body: _currentIndex == 0
           ? SafeArea(
