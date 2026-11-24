@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../favorites_store.dart';
+import 'listing_details_screen.dart';
 
 const _purple = Color(0xFF4B2A8B);
 
@@ -62,115 +63,137 @@ class _FavoriteCard extends StatelessWidget {
       color: Colors.white,
       elevation: 1,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              SizedBox(
-                height: 190,
-                width: double.infinity,
-                child: Image.asset(
-                  'lib/screens/images/immo.jpeg',
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => const ColoredBox(
-                    color: Color(0xFFEDE7F7),
-                    child: Center(
-                      child: Icon(Icons.apartment, color: _purple, size: 56),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 12,
-                right: 12,
-                child: Material(
-                  color: Colors.white,
-                  shape: const CircleBorder(),
-                  child: IconButton(
-                    onPressed: onRemove,
-                    tooltip: 'Retirer des favoris',
-                    icon: const Icon(Icons.favorite, color: Colors.red),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 12,
-                left: 12,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    child: Text(
-                      'À vendre',
-                      style: TextStyle(
-                        color: _purple,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => ListingDetailsScreen(
+              title: listing.title,
+              price: listing.price,
+              location: listing.location,
+              category: 'Vente',
+              imagePath: 'lib/screens/images/photo6.jpeg',
+              description: '${listing.title} situé ${listing.location}.',
+              rating: '4.8',
+              reviews: '(120 avis)',
+              bedrooms: listing.bedrooms,
+              area: listing.area,
+            ),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                SizedBox(
+                  height: 190,
+                  width: double.infinity,
+                  child: Image.asset(
+                    'lib/screens/images/photo6.jpeg',
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => const ColoredBox(
+                      color: Color(0xFFEDE7F7),
+                      child: Center(
+                        child: Icon(Icons.apartment, color: _purple, size: 56),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  listing.price,
-                  style: const TextStyle(
-                    color: _purple,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: Material(
+                    color: Colors.white,
+                    shape: const CircleBorder(),
+                    child: IconButton(
+                      onPressed: onRemove,
+                      tooltip: 'Retirer des favoris',
+                      icon: const Icon(Icons.favorite, color: Colors.red),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 5),
-                Text(
-                  listing.title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                Positioned(
+                  bottom: 12,
+                  left: 12,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      child: Text(
+                        'À vendre',
+                        style: TextStyle(
+                          color: _purple,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 5),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.location_on_outlined,
-                      color: Colors.black54,
-                      size: 17,
-                    ),
-                    const SizedBox(width: 3),
-                    Text(
-                      listing.location,
-                      style: TextStyle(color: Colors.grey[700]),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    _Feature(
-                      icon: Icons.bed_outlined,
-                      label: '${listing.bedrooms} chambres',
-                    ),
-                    const SizedBox(width: 18),
-                    _Feature(
-                      icon: Icons.square_foot,
-                      label: '${listing.area} m²',
-                    ),
-                  ],
                 ),
               ],
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    listing.price,
+                    style: const TextStyle(
+                      color: _purple,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    listing.title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.location_on_outlined,
+                        color: Colors.black54,
+                        size: 17,
+                      ),
+                      const SizedBox(width: 3),
+                      Text(
+                        listing.location,
+                        style: TextStyle(color: Colors.grey[700]),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      _Feature(
+                        icon: Icons.bed_outlined,
+                        label: '${listing.bedrooms} chambres',
+                      ),
+                      const SizedBox(width: 18),
+                      _Feature(
+                        icon: Icons.square_foot,
+                        label: '${listing.area} m²',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

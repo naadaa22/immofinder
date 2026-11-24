@@ -12,6 +12,8 @@ import 'package:geocoding_platform_interface/geocoding_platform_interface.dart'
 import 'package:immofinder/main.dart';
 import 'package:immofinder/screens/home_screen.dart';
 import 'package:immofinder/screens/login_screen.dart';
+import 'package:immofinder/screens/favorites_screen.dart';
+import 'package:immofinder/screens/listing_details_screen.dart';
 import 'package:immofinder/screens/profile_screen.dart';
 import 'package:immofinder/screens/privacy_screen.dart';
 import 'package:immofinder/screens/register_screen.dart';
@@ -25,10 +27,11 @@ void main() {
   ) async {
     await tester.pumpWidget(const ImmoFinderApp());
 
-    expect(find.text('Trouvez votre bien idéal\nen Tunisie'), findsOneWidget);
+    expect(find.text('Immofinder'), findsOneWidget);
+    expect(find.text('Find Your Dream Here'), findsOneWidget);
     expect(find.text('Connectez-vous pour continuer'), findsNothing);
 
-    await tester.pump(const Duration(seconds: 3));
+    await tester.tap(find.text('Get Started'));
     await tester.pumpAndSettle();
 
     expect(find.text('Connectez-vous pour continuer'), findsOneWidget);
@@ -132,19 +135,104 @@ void main() {
 
       await tester.tap(find.text('Tout voir'));
       await tester.pumpAndSettle();
-      expect(find.text('Annonces populaires'), findsOneWidget);
+      expect(find.text('Featured Properties'), findsOneWidget);
     }
   });
 
-  testWidgets('home displays multiple listings with local photos', (
+  testWidgets('home displays initial listings with local photos', (
+    WidgetTester tester,
+  ) async {
+    UserProfileStore.instance.register(
+      name: 'Leila Trabelsi',
+      email: 'leila@example.com',
+      phone: '',
+    );
+    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+
+    expect(find.text('Hello, Leila Trabelsi!'), findsOneWidget);
+    expect(find.text('Villa avec piscine'), findsOneWidget);
+    expect(find.text('Villa familiale avec jardin'), findsOneWidget);
+    expect(find.text('Résidence neuve S+3'), findsOneWidget);
+    expect(find.byType(Image), findsAtLeastNWidgets(4));
+  });
+
+  testWidgets('client can add and remove a home listing from favorites', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
 
-    expect(find.text('Villa avec piscine'), findsOneWidget);
-    expect(find.text('Villa familiale avec jardin'), findsOneWidget);
-    expect(find.text('Résidence neuve S+3'), findsOneWidget);
-    expect(find.byType(Image), findsNWidgets(7));
+    final favoriteKey = find.byKey(
+      const ValueKey('favorite-Villa avec piscine'),
+    );
+    await tester.ensureVisible(favoriteKey);
+    await tester.tap(favoriteKey);
+    await tester.pump();
+
+    expect(
+      find.descendant(of: favoriteKey, matching: find.byIcon(Icons.favorite)),
+      findsOneWidget,
+    );
+
+    await tester.tap(favoriteKey);
+    await tester.pump();
+    expect(
+      find.descendant(
+        of: favoriteKey,
+        matching: find.byIcon(Icons.favorite_border),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('voir tout reveals additional home listings', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+
+    expect(find.text('Appartement moderne S+3'), findsNothing);
+    await tester.tap(find.text('Voir tout >'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Appartement moderne S+3'), findsOneWidget);
+    expect(find.text('Studio meublé en centre-ville'), findsOneWidget);
+    expect(find.text('Appartement neuf S+2'), findsOneWidget);
+    expect(find.text('Terrain constructible'), findsOneWidget);
+    expect(find.text('Voir moins'), findsOneWidget);
+  });
+
+  testWidgets('tapping a home listing opens its details', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+
+    await tester.ensureVisible(find.text('Appartement S+2'));
+    await tester.tap(find.text('Appartement S+2'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ListingDetailsScreen), findsOneWidget);
+    expect(find.text('250 000 DT'), findsOneWidget);
+    expect(find.text('À La Marsa'), findsOneWidget);
+    expect(find.text('2 chambres'), findsOneWidget);
+    expect(find.text('120 m²'), findsOneWidget);
+    expect(
+      find.text('Appartement S+2 de 120 m² situé à La Marsa.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('tapping a favorite listing opens its details', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: FavoritesScreen()));
+
+    await tester.tap(find.text('Appartement S+2'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ListingDetailsScreen), findsOneWidget);
+    expect(find.text('250 000 DT'), findsOneWidget);
+    expect(find.text('La Marsa, Tunis'), findsOneWidget);
+    expect(find.text('2 chambres'), findsOneWidget);
+    expect(find.text('120 m²'), findsOneWidget);
   });
 
   testWidgets('location selector offers map and current position only', (

@@ -7,137 +7,14 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../favorites_store.dart';
+import '../user_profile_store.dart';
 import 'add_listing_screen.dart';
 import 'favorites_screen.dart';
+import 'listing_details_screen.dart';
 import 'map_screen.dart';
 import 'messages_screen.dart';
-import '../notification_store.dart';
-import 'notifications_screen.dart';
 import 'profile_screen.dart';
-
-class _ProfileBottomNavigation extends StatelessWidget {
-  const _ProfileBottomNavigation({
-    required this.currentIndex,
-    required this.onTap,
-  });
-
-  final int currentIndex;
-  final ValueChanged<int> onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    const purple = Color(0xFF4B2A8B);
-    final items = [
-      (Icons.home_outlined, 'Accueil'),
-      (Icons.favorite_border, 'Favoris'),
-      (Icons.message_outlined, 'Messages'),
-      (Icons.person_outline, 'Profil'),
-    ];
-
-    return Container(
-      height: 82,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 12,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          children: [
-            _BottomNavItem(
-              icon: items[0].$1,
-              label: items[0].$2,
-              selected: currentIndex == 0,
-              onTap: () => onTap(0),
-            ),
-            _BottomNavItem(
-              icon: items[1].$1,
-              label: items[1].$2,
-              selected: currentIndex == 1,
-              onTap: () => onTap(1),
-            ),
-            Expanded(
-              child: Center(
-                child: InkResponse(
-                  onTap: () => onTap(2),
-                  radius: 38,
-                  child: Container(
-                    width: 64,
-                    height: 64,
-                    decoration: const BoxDecoration(
-                      color: purple,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.add, color: Colors.white, size: 34),
-                  ),
-                ),
-              ),
-            ),
-            _BottomNavItem(
-              icon: items[2].$1,
-              label: items[2].$2,
-              selected: currentIndex == 3,
-              onTap: () => onTap(3),
-            ),
-            _BottomNavItem(
-              icon: items[3].$1,
-              label: items[3].$2,
-              selected: currentIndex == 4,
-              onTap: () => onTap(4),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _BottomNavItem extends StatelessWidget {
-  const _BottomNavItem({
-    required this.icon,
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    const purple = Color(0xFF4B2A8B);
-    final color = selected ? purple : const Color(0xFF77777D);
-    return Expanded(
-      child: InkResponse(
-        onTap: onTap,
-        radius: 34,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: color, size: 29),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontSize: 12,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -157,78 +34,120 @@ class _HomeScreenState extends State<HomeScreen> {
 
   static const _currentLocationOption = '__current_location__';
   static const _mapLocationOption = '__map_location__';
+  static const _initialListingCount = 6;
   static const _listings = [
     _PropertyListing(
       category: 'Vente',
-      image: 'lib/screens/images/villa_landscape.jpg',
+      image: 'lib/screens/images/appartement.jpg',
       price: '250 000 DT',
       title: 'Appartement S+2',
       location: 'À La Marsa',
       rating: '4.8',
       reviews: '(120 avis)',
-      ownerName: 'Ahmed Ben Ali',
-      ownerId: 'ahmed@immofinder.tn',
+      bedrooms: 2,
+      area: 120,
+      description: 'Appartement S+2 de 120 m² situé à La Marsa.',
     ),
     _PropertyListing(
       category: 'Vente',
-      image: 'lib/screens/images/villa1.jpg',
+      image: 'lib/screens/images/photo5.webp',
       price: '680 000 DT',
       title: 'Villa avec piscine',
       location: 'À Gammarth',
       rating: '4.9',
       reviews: '(86 avis)',
-      ownerName: 'Meriem Trabelsi',
-      ownerId: 'meriem@immofinder.tn',
+      description: 'Villa avec piscine située à Gammarth.',
     ),
     _PropertyListing(
       category: 'Location',
-      image: 'lib/screens/images/villa2.jpg',
+      image: 'lib/screens/images/photo4.webp',
       price: '3 200 DT / mois',
       title: 'Villa familiale avec jardin',
       location: 'À La Soukra',
       rating: '4.7',
       reviews: '(42 avis)',
-      ownerName: 'Youssef Gharbi',
-      ownerId: 'youssef@immofinder.tn',
+      description: 'Villa familiale avec jardin située à La Soukra.',
     ),
     _PropertyListing(
       category: 'Neuf',
-      image: 'lib/screens/images/villa3.jpg',
+      image: 'lib/screens/images/photo3.webp',
       price: '425 000 DT',
       title: 'Résidence neuve S+3',
       location: 'Aux Jardins de Carthage',
       rating: '4.9',
       reviews: '(31 avis)',
-      ownerName: 'Ines Mejri',
-      ownerId: 'ines@immofinder.tn',
+      description: 'Résidence neuve S+3 située aux Jardins de Carthage.',
     ),
     _PropertyListing(
       category: 'Terrain',
-      image: 'lib/screens/images/terrain_agricole.jpg',
+      image: 'lib/screens/images/photo2.png',
       price: '125 000 DT',
       title: 'Parcelle agricole de 2 hectares',
       location: 'À Béja',
       rating: '4.8',
       reviews: '(18 avis)',
-      ownerName: 'Slim Bouazizi',
-      ownerId: 'slim@immofinder.tn',
-      photoCredit: 'Photo illustrative · Unsplash',
+      description: 'Parcelle agricole de 2 hectares située à Béja.',
     ),
     _PropertyListing(
       category: 'Terrain',
-      image: 'lib/screens/images/terrain_panoramique.jpg',
+      image: 'lib/screens/images/photo1.png',
       price: '280 000 DT',
       title: 'Terrain avec vue panoramique',
       location: 'À Aïn Draham',
       rating: '4.9',
       reviews: '(12 avis)',
-      ownerName: 'Nadia Kacem',
-      ownerId: 'nadia@immofinder.tn',
-      photoCredit: 'Photo illustrative · Unsplash',
+      description: 'Terrain avec vue panoramique situé à Aïn Draham.',
+    ),
+    _PropertyListing(
+      category: 'Vente',
+      image: 'lib/screens/images/appartement_2.png',
+      price: '390 000 DT',
+      title: 'Appartement moderne S+3',
+      location: 'À El Menzah',
+      rating: '4.7',
+      reviews: '(54 avis)',
+      bedrooms: 3,
+      area: 145,
+      description: 'Appartement moderne S+3 situé à El Menzah.',
+    ),
+    _PropertyListing(
+      category: 'Location',
+      image: 'lib/screens/images/appartement.jpg',
+      price: '1 800 DT / mois',
+      title: 'Studio meublé en centre-ville',
+      location: 'À Tunis Centre',
+      rating: '4.6',
+      reviews: '(27 avis)',
+      bedrooms: 1,
+      area: 55,
+      description: 'Studio meublé proposé à la location à Tunis Centre.',
+    ),
+    _PropertyListing(
+      category: 'Neuf',
+      image: 'lib/screens/images/appartement_1.jpg',
+      price: '510 000 DT',
+      title: 'Appartement neuf S+2',
+      location: 'À La Soukra',
+      rating: '4.8',
+      reviews: '(19 avis)',
+      bedrooms: 2,
+      area: 110,
+      description: 'Appartement neuf S+2 situé à La Soukra.',
+    ),
+    _PropertyListing(
+      category: 'Terrain',
+      image: 'lib/screens/images/photo7.png',
+      price: '210 000 DT',
+      title: 'Terrain constructible',
+      location: 'À Borj Cedria',
+      rating: '4.7',
+      reviews: '(15 avis)',
+      description: 'Terrain constructible situé à Borj Cedria.',
     ),
   ];
 
   String? _selectedCategory;
+  bool _showAllListings = false;
   String _selectedLocation = 'Localisation';
   String? _currentCoordinates;
   bool _isLocating = false;
@@ -440,280 +359,374 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final visibleListings = _listings
+    final filteredListings = _listings
         .where(
           (listing) =>
               _selectedCategory == null ||
               listing.category == _selectedCategory,
         )
         .toList();
+    final visibleListings = _selectedCategory == null && !_showAllListings
+        ? filteredListings.take(_initialListingCount).toList()
+        : filteredListings;
 
     return Scaffold(
-      // Barre de navigation inférieure
-      bottomNavigationBar: _ProfileBottomNavigation(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
+      backgroundColor: const Color(0xFFF7F8FA),
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x140F1C2E),
+              blurRadius: 16,
+              offset: Offset(0, -4),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: 66,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(0, Icons.home_filled, 'Home'),
+                _buildNavItem(1, Icons.favorite_border, 'Favoris'),
+                _buildNavItem(2, Icons.add_circle_outline, 'Ajouter'),
+                _buildNavItem(3, Icons.chat_bubble_outline, 'Messages'),
+                _buildNavItem(4, Icons.person_outline, 'Profil'),
+              ],
+            ),
+          ),
+        ),
       ),
       body: _currentIndex == 0
           ? SafeArea(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // En-tête (Localisation et Notifications)
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Flexible(
-                          child: Semantics(
-                            button: true,
-                            label:
-                                'Choisir la localisation, $_selectedLocation',
-                            child: Material(
-                              color: const Color(0xFFF3EFFA),
-                              borderRadius: BorderRadius.circular(14),
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(14),
-                                onTap: _selectLocation,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 10,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      _isLocating
-                                          ? const SizedBox(
-                                              width: 20,
-                                              height: 20,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                                color: Color(0xFF4B2A8B),
-                                              ),
-                                            )
-                                          : const Icon(
-                                              Icons.location_on,
-                                              color: Color(0xFF4B2A8B),
-                                              size: 24,
-                                            ),
-                                      const SizedBox(width: 8),
-                                      Flexible(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              _selectedLocation,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 20,
-                                              ),
-                                            ),
-                                            if (_currentCoordinates != null)
-                                              Text(
-                                                _currentCoordinates!,
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: TextStyle(
-                                                  color: Colors.grey[600],
-                                                  fontSize: 13,
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-                                      const Icon(
-                                        Icons.keyboard_arrow_down,
-                                        size: 24,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
+                        const CircleAvatar(
+                          radius: 22,
+                          backgroundColor: Color(0xFFE8EEF5),
+                          child: Icon(
+                            Icons.person_rounded,
+                            color: Color(0xFF58718D),
+                            size: 26,
                           ),
                         ),
-                        AnimatedBuilder(
-                          animation: NotificationStore.instance,
-                          builder: (context, _) {
-                            return Material(
-                              color: const Color(0xFFF1ECFA),
-                              shape: const CircleBorder(),
-                              child: IconButton(
-                                tooltip: 'Notifications',
-                                icon: const Icon(
-                                  Icons.notifications_none_rounded,
-                                  color: Color(0xFF4B2A8B),
-                                  size: 24,
-                                ),
-                                onPressed: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute<void>(
-                                      builder: (_) =>
-                                          const NotificationsScreen(),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              AnimatedBuilder(
+                                animation: UserProfileStore.instance,
+                                builder: (context, _) {
+                                  final name =
+                                      UserProfileStore.instance.current?.name ??
+                                      'Utilisateur';
+                                  return Text(
+                                    'Hello, $name!',
+                                    style: const TextStyle(
+                                      color: Color(0xFF1D2430),
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
                                     ),
                                   );
                                 },
                               ),
-                            );
-                          },
+                              const SizedBox(height: 2),
+                              Semantics(
+                                button: true,
+                                label:
+                                    'Choisir la localisation, $_selectedLocation',
+                                child: InkWell(
+                                  onTap: _isLocating ? null : _selectLocation,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (_isLocating)
+                                        const SizedBox(
+                                          width: 12,
+                                          height: 12,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      else
+                                        Icon(
+                                          Icons.location_on,
+                                          size: 12,
+                                          color: Colors.blueGrey[400],
+                                        ),
+                                      const SizedBox(width: 2),
+                                      Flexible(
+                                        child: Text(
+                                          _isLocating
+                                              ? 'Localisation…'
+                                              : _selectedLocation,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: Colors.blueGrey[400],
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                      if (!_isLocating)
+                                        const Icon(
+                                          Icons.keyboard_arrow_down,
+                                          size: 16,
+                                          color: Color(0xFF8FA0AE),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x140F1C2E),
+                                blurRadius: 10,
+                                offset: Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: IconButton(
+                            onPressed: () {},
+                            icon: const Icon(
+                              Icons.notifications_none_rounded,
+                              size: 20,
+                              color: Color(0xFF2E3A48),
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
-
-                    // Barre de recherche
+                    const SizedBox(height: 14),
                     TextField(
+                      onTapOutside: (_) =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
                       decoration: InputDecoration(
-                        hintText: 'Rechercher un bien...',
-                        prefixIcon: const Icon(Icons.search),
+                        hintText: 'Search',
+                        hintStyle: const TextStyle(
+                          color: Color(0xFF9BA7B3),
+                          fontSize: 13,
+                        ),
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: Color(0xFF8B99A7),
+                          size: 21,
+                        ),
                         filled: true,
-                        fillColor: Colors.grey[100],
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                        ),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
+                          borderRadius: BorderRadius.circular(14),
                           borderSide: BorderSide.none,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
-
-                    // Catégories
+                    const SizedBox(height: 14),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         _buildCategory(
-                          Icons.home,
+                          Icons.home_outlined,
                           'Vente',
-                          const Color(0xFFE8E2FF),
-                          const Color(0xFF4B2A8B),
+                          const Color(0xFFE8F0FF),
+                          const Color(0xFF3976CC),
                         ),
                         _buildCategory(
-                          Icons.key,
+                          Icons.key_outlined,
                           'Location',
-                          const Color(0xFFFFF3E0),
-                          Colors.orange,
+                          const Color(0xFFFFF0E2),
+                          const Color(0xFFE58A42),
                         ),
                         _buildCategory(
-                          Icons.apartment,
+                          Icons.apartment_outlined,
                           'Neuf',
-                          const Color(0xFFE3F2FD),
-                          Colors.blue,
+                          const Color(0xFFE7F3FC),
+                          const Color(0xFF5C98C7),
                         ),
                         _buildCategory(
-                          Icons.park,
+                          Icons.park_outlined,
                           'Terrain',
-                          const Color(0xFFE8F5E9),
-                          Colors.green,
+                          const Color(0xFFE8F4EA),
+                          const Color(0xFF61A56D),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
-
-                    // Bannière Promotionnelle
+                    const SizedBox(height: 16),
                     Container(
-                      height: 150,
+                      height: 128,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF4B2A8B),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(18),
+                        image: const DecorationImage(
+                          image: AssetImage(
+                            'lib/screens/images/villa_landscape.png',
+                          ),
+                          fit: BoxFit.cover,
+                          alignment: Alignment.center,
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x1A101820),
+                            blurRadius: 12,
+                            offset: Offset(0, 5),
+                          ),
+                        ],
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Row(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(18),
+                          gradient: const LinearGradient(
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                            colors: [
+                              Color(0xC9121C27),
+                              Color(0x330F1A24),
+                              Colors.transparent,
+                            ],
+                          ),
+                        ),
+                        padding: const EdgeInsets.all(16),
+                        alignment: Alignment.centerLeft,
+                        child: const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  16,
-                                  16,
-                                  8,
-                                  16,
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Trouvez la maison\nde vos rêves',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    ElevatedButton(
-                                      onPressed: () {},
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.white,
-                                        foregroundColor: const Color(
-                                          0xFF4B2A8B,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            20,
-                                          ),
-                                        ),
-                                      ),
-                                      child: const Text('Découvrir →'),
-                                    ),
-                                  ],
-                                ),
+                            Text(
+                              'Modern Luxury',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 17,
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.asset(
-                                'lib/screens/images/villa5.jpg',
-                                width: 105,
-                                height: 118,
-                                fit: BoxFit.cover,
+                            SizedBox(height: 3),
+                            Text(
+                              'Brand New & Exquisite',
+                              style: TextStyle(
+                                color: Color(0xFFE7EDF2),
+                                fontSize: 9,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              'Exclusive',
+                              style: TextStyle(
+                                color: Color(0xFFF3B65F),
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1,
                               ),
                             ),
                           ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 24),
-
-                    // Titre Section
+                    const SizedBox(height: 18),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           _selectedCategory == null
-                              ? 'Annonces populaires'
+                              ? 'Featured Properties'
                               : 'Annonces $_selectedCategory',
                           style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF20242A),
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                         TextButton(
                           onPressed: _selectedCategory == null
-                              ? () {}
+                              ? () => setState(
+                                  () => _showAllListings = !_showAllListings,
+                                )
                               : () => setState(() => _selectedCategory = null),
+                          style: TextButton.styleFrom(
+                            minimumSize: Size.zero,
+                            padding: EdgeInsets.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
                           child: Text(
                             _selectedCategory == null
-                                ? 'Voir tout >'
+                                ? _showAllListings
+                                      ? 'Voir moins'
+                                      : 'Voir tout >'
                                 : 'Tout voir',
-                            style: const TextStyle(color: Color(0xFF4B2A8B)),
+                            style: const TextStyle(
+                              color: Color(0xFF2F74B8),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                       ],
                     ),
-
-                    ...visibleListings.map(_buildListingCard),
-                    if (visibleListings.isEmpty)
-                      Center(
+                    const SizedBox(height: 8),
+                    if (visibleListings.isNotEmpty)
+                      _selectedCategory != null || _showAllListings
+                          ? LayoutBuilder(
+                              builder: (context, constraints) {
+                                final cardWidth =
+                                    (constraints.maxWidth - 12) / 2;
+                                return Wrap(
+                                  spacing: 12,
+                                  runSpacing: 12,
+                                  children: visibleListings
+                                      .map(
+                                        (listing) => SizedBox(
+                                          width: cardWidth,
+                                          height: 188,
+                                          child: _buildListingCard(listing),
+                                        ),
+                                      )
+                                      .toList(),
+                                );
+                              },
+                            )
+                          : SizedBox(
+                              height: 188,
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: visibleListings.length,
+                                separatorBuilder: (_, _) =>
+                                    const SizedBox(width: 12),
+                                itemBuilder: (_, index) => SizedBox(
+                                  width: 190,
+                                  child: _buildListingCard(
+                                    visibleListings[index],
+                                  ),
+                                ),
+                              ),
+                            )
+                    else
+                      const Center(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 32),
+                          padding: EdgeInsets.symmetric(vertical: 32),
                           child: Text(
                             'Aucune annonce disponible pour cette catégorie.',
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.grey[600]),
                           ),
                         ),
                       ),
@@ -725,119 +738,190 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildListingCard(_PropertyListing listing) {
+  Widget _buildNavItem(int index, IconData icon, String label) {
+    final isSelected = _currentIndex == index;
     return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: () {
-        MessagesScreen.openConversation(
-          context,
-          otherUserId: listing.ownerId,
-          otherUserName: listing.ownerName,
-          property:
-              '${listing.title} · ${listing.location.replaceFirst('À ', '')}',
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.1),
-              blurRadius: 10,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
+      onTap: () => setState(() => _currentIndex = index),
+      borderRadius: BorderRadius.circular(18),
+      child: SizedBox(
+        width: 58,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(16),
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: 12 / 5,
-                    child: Image.asset(listing.image, fit: BoxFit.cover),
-                  ),
-                ),
-                if (listing.photoCredit != null)
-                  Positioned(
-                    left: 8,
-                    bottom: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black54,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        listing.photoCredit!,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ),
-                  ),
-                const Positioned(
-                  top: 10,
-                  right: 10,
-                  child: CircleAvatar(
-                    backgroundColor: Colors.white,
-                    child: Icon(Icons.favorite, color: Colors.red),
-                  ),
-                ),
-              ],
+            Icon(
+              icon,
+              size: 22,
+              color: isSelected
+                  ? const Color(0xFF3976CC)
+                  : const Color(0xFF98A3AF),
             ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    listing.price,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF4B2A8B),
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    listing.title,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  Text(
-                    listing.location,
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      const Icon(Icons.star, color: Colors.amber, size: 16),
-                      const SizedBox(width: 4),
-                      Text(
-                        listing.rating,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        listing.reviews,
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ],
+            const SizedBox(height: 3),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: isSelected
+                    ? const Color(0xFF3976CC)
+                    : const Color(0xFF98A3AF),
+                fontSize: 8,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildListingCard(_PropertyListing listing) {
+    final favoriteListing = PropertyListing(
+      id: 'home-${listing.title}',
+      title: listing.title,
+      price: listing.price,
+      location: listing.location,
+      bedrooms: listing.bedrooms ?? 0,
+      area: listing.area ?? 0,
+    );
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x140F1C2E),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => ListingDetailsScreen(
+                title: listing.title,
+                price: listing.price,
+                location: listing.location,
+                category: listing.category,
+                imagePath: listing.image,
+                description: listing.description,
+                rating: listing.rating,
+                reviews: listing.reviews,
+                bedrooms: listing.bedrooms,
+                area: listing.area,
+              ),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(14),
+                    ),
+                    child: SizedBox(
+                      height: 102,
+                      width: double.infinity,
+                      child: Image.asset(listing.image, fit: BoxFit.cover),
+                    ),
+                  ),
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: AnimatedBuilder(
+                      animation: FavoritesStore.instance,
+                      builder: (context, _) {
+                        final isFavorite = FavoritesStore.instance.contains(
+                          favoriteListing.id,
+                        );
+                        return Material(
+                          color: Colors.white,
+                          shape: const CircleBorder(),
+                          elevation: 1,
+                          child: IconButton(
+                            key: ValueKey('favorite-${listing.title}'),
+                            onPressed: () =>
+                                FavoritesStore.instance.toggle(favoriteListing),
+                            tooltip: isFavorite
+                                ? 'Retirer des favoris'
+                                : 'Ajouter aux favoris',
+                            icon: Icon(
+                              isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: isFavorite
+                                  ? const Color(0xFFE16B6B)
+                                  : const Color(0xFF647487),
+                              size: 17,
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 34,
+                              minHeight: 34,
+                            ),
+                            padding: EdgeInsets.zero,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      listing.price,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF2D65A1),
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      listing.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF242B33),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on_outlined,
+                          color: Color(0xFF8A99A7),
+                          size: 12,
+                        ),
+                        const SizedBox(width: 2),
+                        Expanded(
+                          child: Text(
+                            listing.location,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Color(0xFF8A99A7),
+                              fontSize: 9,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -855,32 +939,47 @@ class _HomeScreenState extends State<HomeScreen> {
     return Semantics(
       button: true,
       selected: isSelected,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () {
-          setState(() {
-            _selectedCategory = isSelected ? null : title;
-          });
-        },
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: bgColor,
-                borderRadius: BorderRadius.circular(16),
-                border: isSelected
-                    ? Border.all(color: iconColor, width: 2)
-                    : null,
+      child: SizedBox(
+        width: 72,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () {
+            setState(() {
+              _selectedCategory = isSelected ? null : title;
+            });
+          },
+          child: Column(
+            children: [
+              Container(
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  borderRadius: BorderRadius.circular(14),
+                  border: isSelected
+                      ? Border.all(color: iconColor, width: 2)
+                      : null,
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x100F1C2E),
+                      blurRadius: 8,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Icon(icon, color: iconColor, size: 25),
               ),
-              child: Icon(icon, color: iconColor, size: 28),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-            ),
-          ],
+              const SizedBox(height: 6),
+              Text(
+                title,
+                style: TextStyle(
+                  color: isSelected ? iconColor : const Color(0xFF536170),
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -896,9 +995,9 @@ class _PropertyListing {
     required this.location,
     required this.rating,
     required this.reviews,
-    required this.ownerName,
-    required this.ownerId,
-    this.photoCredit,
+    required this.description,
+    this.bedrooms,
+    this.area,
   });
 
   final String category;
@@ -908,7 +1007,7 @@ class _PropertyListing {
   final String location;
   final String rating;
   final String reviews;
-  final String ownerName;
-  final String ownerId;
-  final String? photoCredit;
+  final String description;
+  final int? bedrooms;
+  final int? area;
 }

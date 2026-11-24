@@ -63,15 +63,17 @@ flutter:
   uses-material-design: true
 
   assets:
-    - lib/screens/images/villa1.jpg
-    - lib/screens/images/villa2.jpg
-    - lib/screens/images/villa3.jpg
-    - lib/screens/images/villa4.jpg
-    - lib/screens/images/villa5.jpg
-    - lib/screens/images/villa_landscape.jpg
-    - lib/screens/images/terrain_agricole.jpg
-    - lib/screens/images/terrain_panoramique.jpg
-
+    - lib/screens/images/photo1.png
+    - lib/screens/images/photo2.png
+    - lib/screens/images/photo3.webp
+    - lib/screens/images/photo4.webp
+    - lib/screens/images/photo5.webp
+    - lib/screens/images/photo6.png
+    - lib/screens/images/photo7.png
+    - lib/screens/images/appartement.jpg
+    - lib/screens/images/appartement_1.jpg
+    - lib/screens/images/appartement_2.png
+    - lib/screens/images/villa_landscape.png
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

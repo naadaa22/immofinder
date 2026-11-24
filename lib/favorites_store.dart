@@ -33,20 +33,20 @@ class FavoritesStore extends ChangeNotifier {
 
   static final FavoritesStore instance = FavoritesStore._();
 
-  final Set<String> _favoriteIds = {PropertyListing.sample.id};
+  final Map<String, PropertyListing> _favoriteListings = {
+    PropertyListing.sample.id: PropertyListing.sample,
+  };
 
-  List<PropertyListing> get favorites {
-    if (_favoriteIds.contains(PropertyListing.sample.id)) {
-      return const [PropertyListing.sample];
-    }
-    return const [];
-  }
+  List<PropertyListing> get favorites =>
+      List.unmodifiable(_favoriteListings.values);
 
-  bool contains(String listingId) => _favoriteIds.contains(listingId);
+  bool contains(String listingId) => _favoriteListings.containsKey(listingId);
 
   void toggle(PropertyListing listing) {
-    if (!_favoriteIds.add(listing.id)) {
-      _favoriteIds.remove(listing.id);
+    if (!_favoriteListings.containsKey(listing.id)) {
+      _favoriteListings[listing.id] = listing;
+    } else {
+      _favoriteListings.remove(listing.id);
     }
     notifyListeners();
   }
