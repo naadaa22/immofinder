@@ -14,6 +14,8 @@ import 'favorites_screen.dart';
 import 'listing_details_screen.dart';
 import 'map_screen.dart';
 import 'messages_screen.dart';
+import '../notification_store.dart';
+import 'notifications_screen.dart';
 import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -87,6 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
       rating: '4.8',
       reviews: '(18 avis)',
       description: 'Parcelle agricole de 2 hectares située à Béja.',
+      photoCredit: 'Photo illustrative · Unsplash',
     ),
     _PropertyListing(
       category: 'Terrain',
@@ -97,6 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
       rating: '4.9',
       reviews: '(12 avis)',
       description: 'Terrain avec vue panoramique situé à Aïn Draham.',
+      photoCredit: 'Photo illustrative · Unsplash',
     ),
     _PropertyListing(
       category: 'Vente',
@@ -371,34 +375,32 @@ class _HomeScreenState extends State<HomeScreen> {
         : filteredListings;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FA),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Color(0x140F1C2E),
-              blurRadius: 16,
-              offset: Offset(0, -4),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          top: false,
-          child: SizedBox(
-            height: 66,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildNavItem(0, Icons.home_filled, 'Home'),
-                _buildNavItem(1, Icons.favorite_border, 'Favoris'),
-                _buildNavItem(2, Icons.add_circle_outline, 'Ajouter'),
-                _buildNavItem(3, Icons.chat_bubble_outline, 'Messages'),
-                _buildNavItem(4, Icons.person_outline, 'Profil'),
-              ],
-            ),
+      // Barre de navigation inférieure
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: const Color(0xFF4B2A8B),
+        unselectedItemColor: Colors.grey,
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Accueil'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite_border),
+            label: 'Favoris',
           ),
-        ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_circle, size: 40, color: Color(0xFF4B2A8B)),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.message_outlined),
+            label: 'Messages',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: 'Profil',
+          ),
+        ],
       ),
       body: _currentIndex == 0
           ? SafeArea(
@@ -491,26 +493,18 @@ class _HomeScreenState extends State<HomeScreen> {
                             ],
                           ),
                         ),
-                        Container(
-                          width: 38,
-                          height: 38,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x140F1C2E),
-                                blurRadius: 10,
-                                offset: Offset(0, 3),
+                        AnimatedBuilder(
+                          animation: NotificationStore.instance,
+                          builder: (context, _) => IconButton(
+                            tooltip: 'Notifications',
+                            onPressed: () => Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => const NotificationsScreen(),
                               ),
-                            ],
-                          ),
-                          child: IconButton(
-                            onPressed: () {},
+                            ),
                             icon: const Icon(
-                              Icons.notifications_none_rounded,
-                              size: 20,
-                              color: Color(0xFF2E3A48),
+                              Icons.notifications_none,
+                              color: Color(0xFF4B2A8B),
                             ),
                           ),
                         ),
@@ -738,83 +732,42 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label) {
-    final isSelected = _currentIndex == index;
-    return InkWell(
-      onTap: () => setState(() => _currentIndex = index),
-      borderRadius: BorderRadius.circular(18),
-      child: SizedBox(
-        width: 58,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 22,
-              color: isSelected
-                  ? const Color(0xFF3976CC)
-                  : const Color(0xFF98A3AF),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: isSelected
-                    ? const Color(0xFF3976CC)
-                    : const Color(0xFF98A3AF),
-                fontSize: 8,
-                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildListingCard(_PropertyListing listing) {
-    final favoriteListing = PropertyListing(
-      id: 'home-${listing.title}',
-      title: listing.title,
-      price: listing.price,
-      location: listing.location,
-      bedrooms: listing.bedrooms ?? 0,
-      area: listing.area ?? 0,
-    );
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x140F1C2E),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => ListingDetailsScreen(
-                title: listing.title,
-                price: listing.price,
-                location: listing.location,
-                category: listing.category,
-                imagePath: listing.image,
-                description: listing.description,
-                rating: listing.rating,
-                reviews: listing.reviews,
-                bedrooms: listing.bedrooms,
-                area: listing.area,
-              ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => ListingDetailsScreen(
+              title: listing.title,
+              price: listing.price,
+              location: listing.location,
+              category: listing.category,
+              imagePath: listing.image,
+              description:
+                  listing.description ??
+                  '${listing.title} ${listing.location}.',
+              rating: listing.rating,
+              reviews: listing.reviews,
+              photoCredit: listing.photoCredit,
+              bedrooms: listing.bedrooms,
+              area: listing.area,
             ),
+          ),
+        ),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withValues(alpha: 0.1),
+                blurRadius: 10,
+                spreadRadius: 2,
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -823,48 +776,68 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(14),
+                      top: Radius.circular(16),
                     ),
-                    child: SizedBox(
-                      height: 102,
-                      width: double.infinity,
+                    child: AspectRatio(
+                      aspectRatio: 12 / 5,
                       child: Image.asset(listing.image, fit: BoxFit.cover),
                     ),
                   ),
+                  if (listing.photoCredit != null)
+                    Positioned(
+                      left: 8,
+                      bottom: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black54,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          listing.photoCredit!,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ),
                   Positioned(
-                    top: 10,
-                    right: 10,
+                    top: 6,
+                    right: 6,
                     child: AnimatedBuilder(
                       animation: FavoritesStore.instance,
                       builder: (context, _) {
+                        final favorite = PropertyListing(
+                          id: 'home-${listing.title}',
+                          title: listing.title,
+                          price: listing.price,
+                          location: listing.location,
+                          bedrooms: 0,
+                          area: 0,
+                        );
                         final isFavorite = FavoritesStore.instance.contains(
-                          favoriteListing.id,
+                          favorite.id,
                         );
                         return Material(
                           color: Colors.white,
                           shape: const CircleBorder(),
-                          elevation: 1,
                           child: IconButton(
                             key: ValueKey('favorite-${listing.title}'),
-                            onPressed: () =>
-                                FavoritesStore.instance.toggle(favoriteListing),
                             tooltip: isFavorite
                                 ? 'Retirer des favoris'
                                 : 'Ajouter aux favoris',
+                            onPressed: () =>
+                                FavoritesStore.instance.toggle(favorite),
                             icon: Icon(
                               isFavorite
                                   ? Icons.favorite
                                   : Icons.favorite_border,
-                              color: isFavorite
-                                  ? const Color(0xFFE16B6B)
-                                  : const Color(0xFF647487),
-                              size: 17,
+                              color: isFavorite ? Colors.red : Colors.grey,
                             ),
-                            constraints: const BoxConstraints(
-                              minWidth: 34,
-                              minHeight: 34,
-                            ),
-                            padding: EdgeInsets.zero,
                           ),
                         );
                       },
@@ -873,46 +846,42 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       listing.price,
                       style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF2D65A1),
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF4B2A8B),
                       ),
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 5),
                     Text(
                       listing.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF242B33),
-                      ),
+                      style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
+                    Text(
+                      listing.location,
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                    const SizedBox(height: 10),
                     Row(
                       children: [
-                        const Icon(
-                          Icons.location_on_outlined,
-                          color: Color(0xFF8A99A7),
-                          size: 12,
+                        const Icon(Icons.star, color: Colors.amber, size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          listing.rating,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(width: 2),
-                        Expanded(
-                          child: Text(
-                            listing.location,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Color(0xFF8A99A7),
-                              fontSize: 9,
-                            ),
+                        const SizedBox(width: 4),
+                        Text(
+                          listing.reviews,
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
                           ),
                         ),
                       ],
@@ -995,9 +964,10 @@ class _PropertyListing {
     required this.location,
     required this.rating,
     required this.reviews,
-    required this.description,
+    this.description,
     this.bedrooms,
     this.area,
+    this.photoCredit,
   });
 
   final String category;
@@ -1007,7 +977,8 @@ class _PropertyListing {
   final String location;
   final String rating;
   final String reviews;
-  final String description;
+  final String? description;
   final int? bedrooms;
   final int? area;
+  final String? photoCredit;
 }
