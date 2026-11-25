@@ -12,6 +12,7 @@ import 'package:geocoding_platform_interface/geocoding_platform_interface.dart'
 import 'package:immofinder/main.dart';
 import 'package:immofinder/screens/home_screen.dart';
 import 'package:immofinder/screens/login_screen.dart';
+import 'package:immofinder/screens/listing_detail_screen.dart';
 import 'package:immofinder/screens/profile_screen.dart';
 import 'package:immofinder/screens/privacy_screen.dart';
 import 'package:immofinder/screens/register_screen.dart';
@@ -45,10 +46,6 @@ void main() {
     );
 
     await tester.pumpWidget(const MaterialApp(home: ProfileScreen()));
-
-    expect(find.text('Informations personnelles'), findsOneWidget);
-    await tester.tap(find.text('Informations personnelles'));
-    await tester.pumpAndSettle();
 
     expect(find.text('Leila Trabelsi'), findsOneWidget);
     expect(find.text('leila@example.com'), findsOneWidget);
@@ -145,6 +142,53 @@ void main() {
     expect(find.text('Villa familiale avec jardin'), findsOneWidget);
     expect(find.text('Résidence neuve S+3'), findsOneWidget);
     expect(find.byType(Image), findsNWidgets(7));
+  });
+
+  testWidgets('favorite button adds a listing to the favorites screen', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+
+    await tester.scrollUntilVisible(
+      find.byTooltip('Ajouter aux favoris').first,
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.byTooltip('Ajouter aux favoris').first);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Favoris'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Villa avec piscine'), findsOneWidget);
+  });
+
+  testWidgets('listing text opens details and Contacter opens chat', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+
+    await tester.scrollUntilVisible(
+      find.text('Appartement S+2'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Appartement S+2'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ListingDetailScreen), findsOneWidget);
+    expect(find.text('Détails du bien'), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.text('Contacter').first,
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Contacter').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Ahmed Ben Ali'), findsOneWidget);
   });
 
   testWidgets('location selector offers map and current position only', (

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../favorites_store.dart';
+import '../language_store.dart';
 import '../user_profile_store.dart';
 import 'add_listing_screen.dart';
 import 'favorites_screen.dart';
@@ -96,127 +98,389 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Future<void> _showLanguagePicker() async {
+    final language = LanguageStore.instance.language;
+    final selected = await showDialog<AppLanguage>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(LanguageStore.instance.text('choose_language')),
+        content: RadioGroup<AppLanguage>(
+          groupValue: language,
+          onChanged: (value) {
+            if (value != null) Navigator.pop(context, value);
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final item in [
+                (AppLanguage.fr, 'Français'),
+                (AppLanguage.en, 'English'),
+                (AppLanguage.ar, 'العربية'),
+              ])
+                RadioListTile<AppLanguage>(
+                  value: item.$1,
+                  title: Text(item.$2),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (selected != null) {
+      LanguageStore.instance.setLanguage(selected);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F7FC),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(0, 12, 0, 24),
-          children: [
-            const _GroupLabel(title: 'Mon espace'),
-            const SizedBox(height: 14),
-            _ProfileActionTile(
-              icon: Icons.home_outlined,
-              title: 'Mes annonces',
-              subtitle: 'Gérer et publier vos biens',
-              iconColor: const Color(0xFF5E37A7),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const _MyListingsScreen(),
+    return AnimatedBuilder(
+      animation: LanguageStore.instance,
+      builder: (context, _) => Scaffold(
+        backgroundColor: const Color(0xFFF8F7FC),
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(0, 12, 0, 24),
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 14, 18),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        LanguageStore.instance.text('my_profile'),
+                        style: const TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF20212A),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Modifier mon profil',
+                      onPressed: _editProfile,
+                      icon: const Icon(Icons.edit_outlined, color: _purple),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            _ProfileActionTile(
-              icon: Icons.favorite_border,
-              title: 'Mes favoris',
-              subtitle: 'Les biens que vous avez enregistrés',
-              iconColor: const Color(0xFFE83E57),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const FavoritesScreen(),
-                ),
-              ),
-            ),
-            _ProfileActionTile(
-              icon: Icons.person_outline,
-              title: 'Informations personnelles',
-              subtitle: 'Nom, email et téléphone',
-              iconColor: const Color(0xFF6D78C7),
-              onTap: _editProfile,
-            ),
-            const SizedBox(height: 22),
-            const _GroupLabel(title: 'Préférences'),
-            const SizedBox(height: 14),
-            Card(
-              margin: const EdgeInsets.fromLTRB(14, 0, 14, 12),
-              color: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: const BorderSide(color: Color(0xFFF0EEF4)),
-              ),
-              child: SwitchListTile(
-                contentPadding: const EdgeInsets.fromLTRB(16, 8, 14, 8),
-                secondary: const _ActionIcon(
-                  icon: Icons.notifications_none,
-                  iconColor: Color(0xFFEFAC21),
-                ),
-                title: const Text(
-                  'Notifications',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 17),
-                ),
-                subtitle: const Text(
-                  'Nouveaux messages et annonces',
-                  style: TextStyle(color: Color(0xFF77757D), fontSize: 14),
-                ),
-                value: _notificationsEnabled,
-                activeThumbColor: _purple,
-                onChanged: (enabled) {
-                  setState(() => _notificationsEnabled = enabled);
+              AnimatedBuilder(
+                animation: UserProfileStore.instance,
+                builder: (context, _) {
+                  final profile =
+                      UserProfileStore.instance.current ??
+                      const UserProfile(
+                        name: 'Utilisateur',
+                        email: '',
+                        phone: '',
+                      );
+                  return _ProfileBanner(profile: profile, onEdit: _editProfile);
                 },
               ),
-            ),
-            _ProfileActionTile(
-              icon: Icons.notifications_outlined,
-              title: 'Historique des notifications',
-              subtitle: 'Messages, annonces et mises à jour',
-              iconColor: const Color(0xFFEFAC21),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const NotificationsScreen(),
+              const SizedBox(height: 18),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    const Expanded(
+                      child: _ProfileStatCard(
+                        icon: Icons.home_outlined,
+                        value: '0',
+                        label: 'Annonces',
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: AnimatedBuilder(
+                        animation: FavoritesStore.instance,
+                        builder: (context, _) => _ProfileStatCard(
+                          icon: Icons.favorite_border,
+                          value: '${FavoritesStore.instance.favorites.length}',
+                          label: 'Favoris',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: _ProfileStatCard(
+                        icon: Icons.star_outline,
+                        value: '4.8',
+                        label: 'Note',
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            _ProfileActionTile(
-              icon: Icons.help_outline,
-              title: 'Centre d’aide',
-              subtitle: 'Questions fréquentes et assistance',
-              iconColor: const Color(0xFF35AFA7),
-              onTap: _showHelp,
-            ),
-            _ProfileActionTile(
-              icon: Icons.privacy_tip_outlined,
-              title: 'Confidentialité',
-              subtitle: 'Consulter la politique de confidentialité',
-              iconColor: const Color(0xFF555F9C),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(builder: (_) => const PrivacyScreen()),
-              ),
-            ),
-            const SizedBox(height: 18),
-            Center(
-              child: TextButton.icon(
-                onPressed: _logout,
-                icon: const Icon(Icons.logout, color: Color(0xFFE53935)),
-                label: const Text(
-                  'Se déconnecter',
-                  style: TextStyle(
-                    color: Color(0xFFE53935),
-                    fontWeight: FontWeight.w700,
-                    fontSize: 18,
+              const SizedBox(height: 30),
+              const _GroupLabel(title: 'Mon espace'),
+              const SizedBox(height: 14),
+              _ProfileActionTile(
+                icon: Icons.home_outlined,
+                title: 'Mes annonces',
+                subtitle: 'Gérer et publier vos biens',
+                iconColor: const Color(0xFF5E37A7),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const _MyListingsScreen(),
                   ),
                 ),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
+              ),
+              _ProfileActionTile(
+                icon: Icons.favorite_border,
+                title: 'Mes favoris',
+                subtitle: 'Les biens que vous avez enregistrés',
+                iconColor: const Color(0xFFE83E57),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const FavoritesScreen(),
                   ),
                 ),
               ),
-            ),
-          ],
+              _ProfileActionTile(
+                icon: Icons.person_outline,
+                title: 'Informations personnelles',
+                subtitle: 'Nom, email et téléphone',
+                iconColor: const Color(0xFF6D78C7),
+                onTap: _editProfile,
+              ),
+              const SizedBox(height: 22),
+              const _GroupLabel(title: 'Préférences'),
+              const SizedBox(height: 14),
+              Card(
+                margin: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+                color: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: const BorderSide(color: Color(0xFFF0EEF4)),
+                ),
+                child: SwitchListTile(
+                  contentPadding: const EdgeInsets.fromLTRB(16, 8, 14, 8),
+                  secondary: const _ActionIcon(
+                    icon: Icons.notifications_none,
+                    iconColor: Color(0xFFEFAC21),
+                  ),
+                  title: Text(
+                    LanguageStore.instance.text('notifications'),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 17,
+                    ),
+                  ),
+                  subtitle: const Text(
+                    'Nouveaux messages et annonces',
+                    style: TextStyle(color: Color(0xFF77757D), fontSize: 14),
+                  ),
+                  value: _notificationsEnabled,
+                  activeThumbColor: _purple,
+                  onChanged: (enabled) {
+                    setState(() => _notificationsEnabled = enabled);
+                  },
+                ),
+              ),
+              _ProfileActionTile(
+                icon: Icons.notifications_outlined,
+                title: 'Historique des notifications',
+                subtitle: 'Messages, annonces et mises à jour',
+                iconColor: const Color(0xFFEFAC21),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const NotificationsScreen(),
+                  ),
+                ),
+              ),
+              _ProfileActionTile(
+                icon: Icons.language,
+                title: LanguageStore.instance.text('language'),
+                subtitle: LanguageStore.instance.languageName,
+                iconColor: const Color(0xFF4B86C6),
+                onTap: _showLanguagePicker,
+              ),
+              _ProfileActionTile(
+                icon: Icons.help_outline,
+                title: LanguageStore.instance.text('help'),
+                subtitle: 'Questions fréquentes et assistance',
+                iconColor: const Color(0xFF35AFA7),
+                onTap: _showHelp,
+              ),
+              _ProfileActionTile(
+                icon: Icons.privacy_tip_outlined,
+                title: LanguageStore.instance.text('privacy'),
+                subtitle: 'Consulter la politique de confidentialité',
+                iconColor: const Color(0xFF555F9C),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const PrivacyScreen(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              Center(
+                child: TextButton.icon(
+                  onPressed: _logout,
+                  icon: const Icon(Icons.logout, color: Color(0xFFE53935)),
+                  label: Text(
+                    LanguageStore.instance.text('logout'),
+                    style: const TextStyle(
+                      color: Color(0xFFE53935),
+                      fontWeight: FontWeight.w700,
+                      fontSize: 18,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+}
+
+class _ProfileBanner extends StatelessWidget {
+  const _ProfileBanner({required this.profile, required this.onEdit});
+
+  final UserProfile profile;
+  final VoidCallback onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    final initial = profile.name.trim().isEmpty
+        ? 'U'
+        : profile.name.trim()[0].toUpperCase();
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF922FE5), Color(0xFFC276F2)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF922FE5).withValues(alpha: 0.18),
+            blurRadius: 16,
+            offset: const Offset(0, 7),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 39,
+            backgroundColor: Colors.white.withValues(alpha: 0.18),
+            foregroundColor: Colors.white,
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.55),
+                  width: 2,
+                ),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                initial,
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  profile.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  profile.email,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white, fontSize: 15),
+                ),
+                if (profile.phone.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    profile.phone,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(width: 4),
+          IconButton(
+            tooltip: 'Modifier mes informations',
+            onPressed: onEdit,
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.white.withValues(alpha: 0.2),
+              foregroundColor: Colors.white,
+            ),
+            icon: const Icon(Icons.edit_outlined, size: 20),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileStatCard extends StatelessWidget {
+  const _ProfileStatCard({
+    required this.icon,
+    required this.value,
+    required this.label,
+  });
+
+  final IconData icon;
+  final String value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFF0EEF4)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.025),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: _purple, size: 24),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 2),
+          Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+        ],
       ),
     );
   }

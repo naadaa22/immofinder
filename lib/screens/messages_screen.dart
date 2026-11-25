@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../chat_store.dart';
+import '../language_store.dart';
 import '../user_profile_store.dart';
 
 const _purple = Color(0xFF4B2A8B);
@@ -31,9 +32,12 @@ class MessagesScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F7FC),
       appBar: AppBar(
-        title: const Text(
-          'Messages',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        title: Text(
+          LanguageStore.instance.text('messages'),
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         backgroundColor: const Color(0xFFF8F7FC),
         elevation: 0,
@@ -45,20 +49,25 @@ class MessagesScreen extends StatelessWidget {
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
             children: [
-              const Text(
-                'Vos conversations',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              Text(
+                LanguageStore.instance.text('conversations'),
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
-                'Touchez une conversation pour répondre.',
+                LanguageStore.instance.text('conversation_hint'),
                 style: TextStyle(color: Colors.grey[600]),
               ),
               const SizedBox(height: 16),
               if (conversations.isEmpty)
-                const Padding(
+                Padding(
                   padding: EdgeInsets.only(top: 80),
-                  child: Center(child: Text('Aucune conversation')),
+                  child: Center(
+                    child: Text(LanguageStore.instance.text('no_conversation')),
+                  ),
                 ),
               for (final conversation in conversations)
                 _ConversationTile(conversation: conversation),
@@ -78,7 +87,7 @@ class _ConversationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final lastMessage = conversation.messages.isEmpty
-        ? 'Nouvelle conversation'
+        ? LanguageStore.instance.text('new_conversation')
         : conversation.messages.last.text;
     final unread = ChatStore.instance.unreadCount(conversation.id);
 
@@ -162,10 +171,14 @@ class _ConversationScreen extends StatefulWidget {
 
 class _ConversationScreenState extends State<_ConversationScreen> {
   final _messageController = TextEditingController();
+  final _messageScrollController = ScrollController();
+  final _messageFocusNode = FocusNode();
 
   @override
   void dispose() {
     _messageController.dispose();
+    _messageScrollController.dispose();
+    _messageFocusNode.dispose();
     super.dispose();
   }
 
@@ -177,6 +190,19 @@ class _ConversationScreenState extends State<_ConversationScreen> {
       text: text,
     );
     _messageController.clear();
+    _messageFocusNode.requestFocus();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted ||
+          !_messageScrollController.hasClients ||
+          _messageScrollController.position.maxScrollExtent <= 0) {
+        return;
+      }
+      _messageScrollController.animateTo(
+        _messageScrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+    });
   }
 
   Conversation? get _conversation =>
@@ -246,8 +272,13 @@ class _ConversationScreenState extends State<_ConversationScreen> {
             children: [
               Expanded(
                 child: liveConversation.messages.isEmpty
-                    ? const Center(child: Text('Commencez la conversation'))
+                    ? Center(
+                        child: Text(
+                          LanguageStore.instance.text('start_conversation'),
+                        ),
+                      )
                     : ListView.builder(
+                        controller: _messageScrollController,
                         padding: const EdgeInsets.all(16),
                         itemCount: liveConversation.messages.length,
                         itemBuilder: (context, index) {
@@ -311,10 +342,13 @@ class _ConversationScreenState extends State<_ConversationScreen> {
                       Expanded(
                         child: TextField(
                           controller: _messageController,
+                          focusNode: _messageFocusNode,
                           textCapitalization: TextCapitalization.sentences,
                           onSubmitted: (_) => _sendMessage(),
                           decoration: InputDecoration(
-                            hintText: 'Écrire un message...',
+                            hintText: LanguageStore.instance.text(
+                              'write_message',
+                            ),
                             filled: true,
                             fillColor: const Color(0xFFF4F2F8),
                             contentPadding: const EdgeInsets.symmetric(

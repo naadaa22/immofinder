@@ -9,6 +9,13 @@ class PropertyListing {
     required this.location,
     required this.bedrooms,
     required this.area,
+    this.ownerId = 'ahmed@immofinder.tn',
+    this.ownerName = 'Ahmed Ben Ali',
+    this.image = 'lib/screens/images/immo.jpeg',
+    this.category = 'Vente',
+    this.rating,
+    this.reviews,
+    this.description,
   });
 
   final String id;
@@ -17,6 +24,13 @@ class PropertyListing {
   final String location;
   final int bedrooms;
   final int area;
+  final String ownerId;
+  final String ownerName;
+  final String image;
+  final String category;
+  final String? rating;
+  final String? reviews;
+  final String? description;
 
   static const sample = PropertyListing(
     id: 'marsa-apartment-s2',
@@ -33,20 +47,19 @@ class FavoritesStore extends ChangeNotifier {
 
   static final FavoritesStore instance = FavoritesStore._();
 
-  final Set<String> _favoriteIds = {PropertyListing.sample.id};
+  final Map<String, PropertyListing> _favorites = {
+    PropertyListing.sample.id: PropertyListing.sample,
+  };
 
-  List<PropertyListing> get favorites {
-    if (_favoriteIds.contains(PropertyListing.sample.id)) {
-      return const [PropertyListing.sample];
-    }
-    return const [];
-  }
+  List<PropertyListing> get favorites => List.unmodifiable(_favorites.values);
 
-  bool contains(String listingId) => _favoriteIds.contains(listingId);
+  bool contains(String listingId) => _favorites.containsKey(listingId);
 
   void toggle(PropertyListing listing) {
-    if (!_favoriteIds.add(listing.id)) {
-      _favoriteIds.remove(listing.id);
+    if (_favorites.containsKey(listing.id)) {
+      _favorites.remove(listing.id);
+    } else {
+      _favorites[listing.id] = listing;
     }
     notifyListeners();
   }

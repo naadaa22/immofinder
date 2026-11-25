@@ -66,8 +66,18 @@ class ChatStore extends ChangeNotifier {
     final existing = _conversations[id];
     if (existing != null) {
       _unread[id] = 0;
+      final updated = Conversation(
+        id: existing.id,
+        otherUserId: existing.otherUserId,
+        otherUserName: otherUserName,
+        property: property,
+        avatarColor: existing.avatarColor,
+        initials: _initials(otherUserName),
+        messages: existing.messages,
+      );
+      _conversations[id] = updated;
       notifyListeners();
-      return existing;
+      return updated;
     }
 
     final conversation = Conversation(
